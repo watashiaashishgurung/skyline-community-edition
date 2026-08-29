@@ -2455,13 +2455,18 @@ body{
   position:absolute;
   top:12px;
   left:12px;
+  right:12px;
+  width:auto;
   z-index:80;
   display:flex;
+  justify-content:space-between;
   gap:8px;
   align-items:center;
   pointer-events:auto;
 }
 .table-round-controls button{
+  flex:0 0 auto !important;
+  width:auto !important;
   min-width:118px;
   height:38px;
   padding:0 14px;
@@ -2469,8 +2474,18 @@ body{
   position:relative;
   z-index:81;
 }
+.table-round-controls #startRoundBtn{
+  flex:0 0 auto !important;
+  width:auto !important;
+  margin-right:auto !important;
+}
+.table-round-controls #nextRoundBtn{
+  flex:0 0 auto !important;
+  width:auto !important;
+  margin-left:auto !important;
+}
 @media (max-width:760px){
-  .table-round-controls{top:8px;left:8px;gap:6px;}
+  .table-round-controls{top:8px;left:8px;right:8px;gap:6px;}
   .table-round-controls button{min-width:98px;height:34px;padding:0 10px;font-size:.68rem;}
 }
 </style>
