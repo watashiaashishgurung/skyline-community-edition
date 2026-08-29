@@ -1,0 +1,4043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Skyline Community Edition</title>
+<style>
+  :root{
+    --bg:#070b18;
+    --panel:#0d1327;
+    --panel-2:#111a33;
+    --text:#f6f7fb;
+    --muted:#9da8c6;
+    --accent:#f8d36a;
+    --felt:#123f35;
+    --felt-2:#0d2f29;
+    --rail:#6b472d;
+    --rail-2:#3e281b;
+    --chip:#efb84f;
+    --win:#7ee2a8;
+    --danger:#ff7a8a;
+  }
+
+  *{box-sizing:border-box}
+  html{ zoom:0.88; }
+  @supports not (zoom: 1){
+    body{ transform:scale(0.88); transform-origin:top center; width:113.636%; }
+  }
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    color:var(--text);
+    background:
+      radial-gradient(circle at 50% 20%, rgba(48,83,164,.18), transparent 34%),
+      radial-gradient(circle at 20% 80%, rgba(47,124,116,.12), transparent 28%),
+      var(--bg);
+    overflow-x:hidden;
+  }
+
+  .sky{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    overflow:hidden;
+    opacity:.65;
+  }
+  .star{
+    position:absolute;
+    width:2px;
+    height:2px;
+    background:#fff;
+    border-radius:50%;
+    box-shadow:0 0 8px rgba(255,255,255,.8);
+    animation:twinkle 2.5s infinite ease-in-out alternate;
+  }
+  @keyframes twinkle{from{opacity:.2;transform:scale(.8)}to{opacity:1;transform:scale(1.3)}}
+
+  .app{
+    width:min(1180px,95vw);
+    margin:0 auto;
+    padding:28px 0 44px;
+  }
+
+  .topbar{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:18px;
+    margin-bottom:24px;
+  }
+
+  .brand h1{
+    margin:0;
+    font-size:clamp(1.6rem,4vw,2.8rem);
+    letter-spacing:.08em;
+    text-transform:uppercase;
+  }
+  .brand p{
+    margin:.35rem 0 0;
+    color:var(--muted);
+    max-width:720px;
+  }
+
+  .controls{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+
+  button{
+    border:1px solid rgba(255,255,255,.12);
+    background:linear-gradient(180deg,#1b2646,#121a32);
+    color:#fff;
+    padding:11px 16px;
+    border-radius:12px;
+    font-weight:700;
+    cursor:pointer;
+    transition:.2s ease;
+    box-shadow:0 8px 20px rgba(0,0,0,.22);
+  }
+  button:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.26)}
+  button.primary{
+    background:linear-gradient(180deg,#f4d46f,#dca93c);
+    color:#17120a;
+    border-color:#ffe69b;
+  }
+  button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+  .hud{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    gap:12px;
+    margin-bottom:18px;
+  }
+  .hud-card{
+    background:rgba(14,21,43,.82);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:15px;
+    padding:12px 16px;
+    min-height:62px;
+    display:flex;
+    align-items:center;
+  }
+  .hud-card.center{
+    text-align:center;
+    justify-content:center;
+    min-width:180px;
+  }
+  .hud-card:last-child{justify-content:flex-end;text-align:right}
+  .label{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.14em}
+  .value{font-weight:800;font-size:1.08rem;margin-top:2px}
+
+  .table-wrap{
+    position:relative;
+    width:100%;
+    aspect-ratio:16/10;
+    min-height:620px;
+    border-radius:28px;
+    background:linear-gradient(180deg,rgba(16,23,44,.72),rgba(9,14,28,.88));
+    border:1px solid rgba(255,255,255,.08);
+    overflow:hidden;
+    box-shadow:0 35px 80px rgba(0,0,0,.35);
+  }
+
+  .table{
+    position:absolute;
+    left:50%;
+    top:50%;
+    width:68%;
+    height:54%;
+    transform:translate(-50%,-50%);
+    border-radius:50% / 46%;
+    background:
+      radial-gradient(circle at 50% 40%,rgba(255,255,255,.04),transparent 45%),
+      linear-gradient(180deg,var(--felt),var(--felt-2));
+    border:22px solid var(--rail);
+    box-shadow:
+      inset 0 0 0 4px rgba(255,255,255,.08),
+      inset 0 -22px 45px rgba(0,0,0,.24),
+      0 18px 45px rgba(0,0,0,.45);
+  }
+  .table:after{
+    content:"SKYLINE";
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    font-weight:900;
+    letter-spacing:.28em;
+    color:rgba(255,255,255,.07);
+    font-size:clamp(1.2rem,3vw,2.5rem);
+  }
+
+  .pot{
+    position:absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-50%,-50%);
+    z-index:8;
+    width:150px;
+    text-align:center;
+  }
+  .pot-stack{
+    height:58px;
+    position:relative;
+    margin-bottom:6px;
+  }
+  .pot-chip{
+    position:absolute;
+    left:50%;
+    width:54px;
+    height:15px;
+    border-radius:50%;
+    transform:translateX(-50%);
+    background:linear-gradient(180deg,#ffe68e,var(--chip));
+    border:2px solid rgba(255,255,255,.38);
+    box-shadow:0 2px 5px rgba(0,0,0,.3);
+  }
+  .pot-value{
+    display:inline-block;
+    padding:7px 12px;
+    border-radius:999px;
+    background:rgba(6,11,22,.72);
+    border:1px solid rgba(255,255,255,.12);
+    font-weight:800;
+    color:#ffe8a2;
+  }
+
+  .seat{
+    position:absolute;
+    width:150px;
+    min-height:130px;
+    transform:translate(-50%,-50%);
+    transition:.35s ease;
+    z-index:10;
+  }
+  .seat-inner{
+    position:relative;
+    height:100%;
+    border-radius:18px;
+    background:linear-gradient(180deg,rgba(20,29,57,.94),rgba(12,18,36,.96));
+    border:1px solid rgba(255,255,255,.1);
+    padding:12px;
+    text-align:center;
+    box-shadow:0 15px 30px rgba(0,0,0,.28);
+    opacity:.2;
+    transform:scale(.9);
+    transition:.5s cubic-bezier(.2,.8,.2,1);
+  }
+  .seat.active .seat-inner{opacity:1;transform:scale(1)}
+  .seat.winner .seat-inner{
+    border-color:rgba(126,226,168,.9);
+    box-shadow:0 0 0 2px rgba(126,226,168,.18),0 0 34px rgba(126,226,168,.24);
+  }
+
+  .avatar{
+    width:64px;
+    height:64px;
+    margin:0 auto 8px;
+    border-radius:50%;
+    display:grid;
+    place-items:center;
+    font-size:1.75rem;
+    background:
+      radial-gradient(circle at 35% 30%,rgba(255,255,255,.45),transparent 24%),
+      linear-gradient(145deg,#7288ff,#314081);
+    border:3px solid rgba(255,255,255,.7);
+    box-shadow:0 6px 15px rgba(0,0,0,.28);
+  }
+  .name{font-weight:800;font-size:.96rem}
+  .chips{color:#ffd875;font-size:.88rem;margin-top:2px}
+  .wins{font-size:.76rem;color:var(--muted);margin-top:2px}
+
+  .bet-chip{
+    position:absolute;
+    width:28px;
+    height:28px;
+    border-radius:50%;
+    z-index:30;
+    display:grid;
+    place-items:center;
+    font-size:.58rem;
+    font-weight:900;
+    color:#271b05;
+    background:radial-gradient(circle at 35% 30%,#fff0a8,#e6ad35 65%,#a66a0d 100%);
+    border:2px solid #ffeaa0;
+    box-shadow:0 4px 12px rgba(0,0,0,.34);
+    transition:transform .75s cubic-bezier(.2,.8,.2,1),opacity .35s ease;
+  }
+
+  .message{
+    position:absolute;
+    left:50%;
+    top:12%;
+    transform:translateX(-50%);
+    z-index:40;
+    padding:10px 16px;
+    border-radius:999px;
+    background:rgba(6,10,22,.83);
+    border:1px solid rgba(255,255,255,.12);
+    font-weight:800;
+    max-width:85%;
+    text-align:center;
+    opacity:0;
+    transition:.25s ease;
+    pointer-events:none;
+  }
+  .message.show{opacity:1;top:10%}
+
+  .legend{
+    display:flex;
+    justify-content:center;
+    gap:20px;
+    flex-wrap:wrap;
+    margin-top:16px;
+    color:var(--muted);
+    font-size:.84rem;
+  }
+
+  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px}
+  .dot.gold{background:#f4c85d}
+  .dot.green{background:#7ee2a8}
+
+  .data-section{margin-top:22px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .chart-card{background:rgba(14,21,43,.86);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:16px;box-shadow:0 18px 40px rgba(0,0,0,.24)}
+  .chart-card h3{margin:0 0 4px;font-size:1rem}.chart-card p{margin:0 0 12px;color:var(--muted);font-size:.82rem}
+  .chart-canvas{width:100%;height:260px;display:block;border-radius:12px;background:rgba(4,9,22,.45)}
+
+  .outcome-table-wrap{overflow:auto;max-height:260px;border-radius:12px;border:1px solid rgba(255,255,255,.08)}
+  .outcome-table{width:100%;border-collapse:collapse;font-size:.86rem}
+  .outcome-table th,.outcome-table td{padding:10px 9px;border-bottom:1px solid rgba(255,255,255,.07);text-align:left;white-space:nowrap}
+  .outcome-table th{position:sticky;top:0;background:#111a33;color:#aeb9d7;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em}
+  .outcome-table tr:last-child td{border-bottom:0}
+  .outcome-table .winner-name{font-weight:800;color:#7ee2a8}
+  .outcome-table .money{font-weight:800;color:#ffd875}
+  .empty-outcome{color:var(--muted);text-align:center!important;padding:26px!important}
+
+  .stats-strip{margin-top:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .mini-stat{background:rgba(14,21,43,.74);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px 14px}.mini-stat .big{font-weight:900;font-size:1.05rem;margin-top:3px}
+  @media (max-width:850px){
+    .topbar{align-items:flex-start;flex-direction:column}
+    .controls{justify-content:flex-start}
+    .hud{grid-template-columns:1fr 1fr}
+    .hud-card.center{grid-column:span 2;order:-1}
+    .table-wrap{min-height:740px;aspect-ratio:auto}
+    .table{width:82%;height:40%;border-width:16px}
+    .seat{width:128px}
+    .data-section{grid-template-columns:1fr}
+  
+  .outcome-table-wrap{overflow:auto;max-height:260px;border-radius:12px;border:1px solid rgba(255,255,255,.08)}
+  .outcome-table{width:100%;border-collapse:collapse;font-size:.86rem}
+  .outcome-table th,.outcome-table td{padding:10px 9px;border-bottom:1px solid rgba(255,255,255,.07);text-align:left;white-space:nowrap}
+  .outcome-table th{position:sticky;top:0;background:#111a33;color:#aeb9d7;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em}
+  .outcome-table tr:last-child td{border-bottom:0}
+  .outcome-table .winner-name{font-weight:800;color:#7ee2a8}
+  .outcome-table .money{font-weight:800;color:#ffd875}
+  .empty-outcome{color:var(--muted);text-align:center!important;padding:26px!important}
+
+  .stats-strip{grid-template-columns:1fr}
+    .seat-inner{padding:9px}
+    .avatar{width:54px;height:54px}
+  }
+  button.secondary{
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.12);
+  }
+  button:disabled{
+    opacity:.45;
+    cursor:not-allowed;
+    transform:none !important;
+  }
+
+  /* v7: ten-player table + Skyline line chart */
+  .seat{width:112px}
+  .seat-inner{padding:8px 8px 7px}
+  .avatar{width:46px;height:46px;font-size:24px}
+  .name{font-size:.78rem}
+  .chips,.wins{font-size:.68rem}
+  .chart-legend{display:flex;flex-wrap:wrap;gap:7px 12px;margin-top:12px}
+  .chart-legend span{display:inline-flex;align-items:center;gap:6px;color:#cbd4ee;font-size:.72rem}
+  .chart-legend i{display:inline-block;width:9px;height:9px;border-radius:50%}
+  .totals-card{margin-top:16px;padding:18px;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(14,21,43,.78);box-shadow:0 18px 45px rgba(0,0,0,.2)}
+  .totals-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:12px}
+  .totals-head h3{margin:0 0 5px}
+  .totals-head p{margin:0;color:var(--muted);font-size:.78rem}
+  .grand-net{padding:9px 12px;border:1px solid rgba(255,255,255,.09);border-radius:12px;background:rgba(255,255,255,.035);white-space:nowrap;color:var(--muted);font-size:.78rem}
+  .grand-net strong{color:#e9ecff}
+  .net-positive{color:#7ee2a8!important;font-weight:800}
+  .net-negative{color:#ff8d96!important;font-weight:800}
+  .net-zero{color:#e9ecff!important;font-weight:800}
+  @media(max-width:900px){
+    .seat{width:94px}
+    .avatar{width:38px;height:38px;font-size:20px}
+    .totals-head{flex-direction:column}
+  }
+
+
+  .game-settings{
+    display:flex; flex-wrap:wrap; gap:10px; align-items:end;
+    margin-top:12px; padding:12px 14px;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:14px; background:rgba(14,21,43,.72);
+  }
+  .game-settings label{display:flex;flex-direction:column;gap:5px;color:var(--muted);font-size:.72rem}
+  .game-settings input{
+    width:120px; padding:9px 10px; border-radius:10px;
+    border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.055); color:var(--text);
+    font:inherit; outline:none;
+  }
+  .game-settings input:focus{border-color:rgba(246,212,107,.6)}
+  .settings-note{font-size:.72rem;color:var(--muted);padding-bottom:9px}
+  .settings-error{color:#ff8d96;font-size:.72rem;padding-bottom:9px;display:none}
+  .chart-card{position:relative}
+  .chart-tooltip{
+    position:absolute; z-index:20; pointer-events:none;
+    min-width:150px; padding:9px 11px; border-radius:10px;
+    background:rgba(6,10,24,.96); border:1px solid rgba(246,212,107,.45);
+    box-shadow:0 10px 28px rgba(0,0,0,.35);
+    color:#e9ecff; font-size:.72rem; line-height:1.45;
+    opacity:0; transform:translate(-50%,-115%); transition:opacity .12s ease;
+  }
+  .chart-tooltip.show{opacity:1}
+  .chart-tooltip strong{color:#f6d46b}
+
+
+  .player-count-control{display:flex;align-items:center;gap:5px}
+  .player-count-control input{width:58px;text-align:center;font-weight:800}
+  .count-btn{
+    width:34px;height:38px;padding:0;border-radius:10px;
+    display:grid;place-items:center;font-size:1.1rem;font-weight:800;
+    background:rgba(255,255,255,.075);border:1px solid rgba(255,255,255,.12);
+    color:var(--text);
+  }
+  .count-btn:disabled{opacity:.38;cursor:not-allowed}
+
+
+  .table-wrap.many-players .seat{width:88px}
+  .table-wrap.many-players .seat-inner{padding:6px 5px}
+  .table-wrap.many-players .avatar{width:34px;height:34px;font-size:18px}
+  .table-wrap.many-players .name{font-size:.68rem}
+  .table-wrap.many-players .chips,
+  .table-wrap.many-players .wins{font-size:.59rem}
+  .table-wrap.crowded-players .seat{width:76px}
+  .table-wrap.crowded-players .avatar{width:29px;height:29px;font-size:16px}
+  .table-wrap.crowded-players .name{font-size:.61rem}
+  .table-wrap.crowded-players .chips,
+  .table-wrap.crowded-players .wins{font-size:.54rem}
+
+
+  .random-names-btn{height:38px;padding:0 12px;font-size:.72rem;white-space:nowrap}
+
+
+  /* Skyline Community Edition celebration */
+  .celebration-overlay{
+    position:fixed; inset:0; z-index:9999; display:none;
+    align-items:center; justify-content:center; overflow:hidden;
+    background:radial-gradient(circle at center,rgba(30,47,92,.5),rgba(4,7,18,.92));
+    backdrop-filter:blur(6px);
+  }
+  .celebration-overlay.show{display:flex}
+  .celebration-card{
+    position:relative; z-index:3; width:min(520px,88vw);
+    padding:34px 28px; text-align:center; border-radius:24px;
+    border:1px solid rgba(255,255,255,.14);
+    background:rgba(10,16,36,.92);
+    box-shadow:0 30px 80px rgba(0,0,0,.45);
+    animation:celebratePop .65s cubic-bezier(.2,.8,.2,1);
+  }
+  .celebration-card h2{margin:4px 0 10px;font-size:2rem}
+  .celebration-icon{font-size:3rem;animation:celebratePulse 1.2s ease-in-out infinite alternate}
+  .celebration-message{font-size:1.15rem;color:#f6d46b;font-weight:800;margin-bottom:22px}
+  .celebration-stars{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+  .falling-star{
+    position:absolute; top:-12vh; width:3px; height:3px; border-radius:50%;
+    background:#fff; box-shadow:0 0 8px rgba(255,255,255,.9);
+    animation:starFall linear forwards;
+  }
+  .falling-star::after{
+    content:""; position:absolute; right:2px; top:1px;
+    width:70px; height:1px;
+    background:linear-gradient(90deg,rgba(255,255,255,.8),transparent);
+    transform:rotate(-35deg); transform-origin:right center;
+  }
+  @keyframes starFall{
+    0%{transform:translate3d(0,-10vh,0) rotate(0deg);opacity:0}
+    8%{opacity:1}
+    100%{transform:translate3d(-22vw,120vh,0) rotate(8deg);opacity:0}
+  }
+  @keyframes celebratePop{
+    0%{transform:scale(.72);opacity:0}
+    100%{transform:scale(1);opacity:1}
+  }
+  @keyframes celebratePulse{
+    from{transform:scale(1) rotate(-3deg)}
+    to{transform:scale(1.12) rotate(3deg)}
+  }
+
+  /* Ambient falling stars */
+  .ambient-star{
+    position:fixed; z-index:0; top:-8vh; pointer-events:none;
+    font-size:10px; opacity:.6;
+    animation:ambientStarFall linear infinite;
+  }
+  @keyframes ambientStarFall{
+    0%{transform:translate3d(0,-8vh,0) rotate(0deg);opacity:0}
+    10%{opacity:.65}
+    100%{transform:translate3d(-15vw,115vh,0) rotate(35deg);opacity:0}
+  }
+
+
+  /* Keep the full game title on one line */
+  h1{
+    white-space:nowrap;
+    font-size:clamp(1.25rem, 3.2vw, 2.65rem) !important;
+    line-height:1.05;
+    letter-spacing:.055em;
+  }
+  @media (max-width:700px){
+    h1{
+      font-size:clamp(.95rem, 5vw, 1.45rem) !important;
+      letter-spacing:.025em;
+    }
+  }
+
+
+/* =========================================================
+   SKYLINE COMMUNITY EDITION — LANDING LAYOUT
+   Keeps all original functionality; layout only.
+   ========================================================= */
+
+html{
+  background:#050816;
+}
+
+body{
+  min-height:100vh;
+  background:
+    radial-gradient(circle at 50% 4%,rgba(53,72,170,.18),transparent 30%),
+    radial-gradient(circle at 12% 46%,rgba(42,89,150,.10),transparent 30%),
+    #050816;
+}
+
+/* User requested an 80% browser-width presentation. */
+.app{
+  width:80vw !important;
+  max-width:1500px !important;
+  min-width:900px;
+  margin:0 auto !important;
+  padding:14px 0 36px !important;
+  position:relative;
+  z-index:2;
+}
+
+/* First row: branding/instructions | actions | setup */
+.topbar{
+  display:grid !important;
+  grid-template-columns:minmax(260px,.95fr) minmax(210px,.55fr) minmax(430px,1.45fr) !important;
+  align-items:stretch !important;
+  gap:14px !important;
+  margin-bottom:12px !important;
+}
+
+.brand{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:flex-start;
+  padding:0 2px;
+}
+
+.skyline-brand-logo{
+  width:min(100%,340px);
+  height:76px;
+  object-fit:cover;
+  object-position:center 18%;
+  border-radius:14px;
+  display:block;
+  filter:saturate(1.08) contrast(1.04);
+  box-shadow:0 12px 28px rgba(0,0,0,.28);
+}
+
+.community-title{
+  width:min(100%,340px);
+  margin-top:7px;
+  color:#f7f8ff;
+  text-align:center;
+  font-size:.82rem;
+  line-height:1;
+  letter-spacing:.38em;
+  font-weight:900;
+  white-space:nowrap;
+  text-shadow:0 0 16px rgba(100,133,255,.35);
+}
+
+.brand h1{display:none !important}
+
+.brand p{
+  margin:10px 0 0 !important;
+  max-width:370px !important;
+  font-size:.76rem !important;
+  line-height:1.45 !important;
+  color:#b4bdd7 !important;
+}
+
+/* Center action panel */
+.controls{
+  justify-content:center !important;
+  align-content:center;
+  align-items:stretch;
+  flex-direction:column;
+  flex-wrap:nowrap !important;
+  gap:8px !important;
+  padding:8px 0;
+}
+
+.controls button{
+  width:100%;
+  min-height:38px;
+  padding:8px 10px;
+  font-size:.74rem;
+  border-radius:10px;
+}
+
+/* Setup panel */
+.game-settings{
+  margin-top:0 !important;
+  padding:12px 13px !important;
+  display:grid !important;
+  grid-template-columns:repeat(3,minmax(105px,1fr)) !important;
+  gap:9px 10px !important;
+  align-content:center;
+  background:linear-gradient(180deg,rgba(14,22,45,.92),rgba(10,17,35,.88)) !important;
+  border-radius:16px !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+.game-settings label{
+  font-size:.62rem !important;
+  gap:4px !important;
+}
+
+.game-settings input{
+  width:100% !important;
+  min-width:0;
+  height:34px;
+  padding:6px 8px !important;
+  font-size:.72rem !important;
+}
+
+.player-count-control{
+  width:100%;
+}
+.player-count-control input{
+  flex:1;
+  min-width:42px;
+}
+.count-btn{
+  width:31px !important;
+  height:34px !important;
+  flex:0 0 31px;
+}
+.random-names-btn{
+  width:100%;
+  height:34px !important;
+  min-height:34px;
+  padding:0 8px !important;
+  font-size:.63rem !important;
+}
+.settings-note{
+  grid-column:1/-1;
+  padding:0 !important;
+  font-size:.60rem !important;
+  line-height:1.35;
+}
+.settings-error{
+  grid-column:1/-1;
+  padding:0 !important;
+  font-size:.60rem !important;
+}
+
+/* HUD stays visible above the table */
+.hud{
+  grid-template-columns:1.25fr .45fr 1.25fr !important;
+  gap:10px !important;
+  margin-bottom:10px !important;
+}
+.hud-card{
+  min-height:48px !important;
+  padding:8px 13px !important;
+  border-radius:13px !important;
+}
+.hud-card.center{
+  min-width:130px !important;
+}
+.label{
+  font-size:.60rem !important;
+}
+.value{
+  font-size:.88rem !important;
+}
+
+/* Fit the entire table into the initial viewport. */
+.table-wrap{
+  height:min(53vh,560px) !important;
+  min-height:390px !important;
+  aspect-ratio:auto !important;
+  border-radius:24px !important;
+  overflow:hidden;
+}
+.table{
+  width:68% !important;
+  height:51% !important;
+  border-width:16px !important;
+}
+.table:after{
+  font-size:clamp(1rem,2.2vw,2rem) !important;
+}
+
+.seat{
+  width:96px !important;
+  min-height:82px !important;
+}
+.seat-inner{
+  border-radius:14px !important;
+  padding:6px !important;
+}
+.avatar{
+  width:38px !important;
+  height:38px !important;
+  font-size:20px !important;
+  margin-bottom:4px !important;
+}
+.name{
+  font-size:.68rem !important;
+}
+.chips,.wins{
+  font-size:.59rem !important;
+}
+.table-wrap.many-players .seat{
+  width:78px !important;
+}
+.table-wrap.many-players .avatar{
+  width:31px !important;
+  height:31px !important;
+  font-size:16px !important;
+}
+.table-wrap.crowded-players .seat{
+  width:66px !important;
+}
+.table-wrap.crowded-players .avatar{
+  width:26px !important;
+  height:26px !important;
+  font-size:14px !important;
+}
+.table-wrap.crowded-players .name{
+  font-size:.55rem !important;
+}
+.table-wrap.crowded-players .chips,
+.table-wrap.crowded-players .wins{
+  font-size:.48rem !important;
+}
+
+.pot{
+  width:125px !important;
+}
+.pot-stack{
+  height:44px !important;
+}
+.message{
+  top:7% !important;
+  padding:7px 12px !important;
+  font-size:.70rem !important;
+}
+.message.show{
+  top:6% !important;
+}
+
+/* Everything below remains available after scrolling. */
+.legend{
+  margin-top:10px !important;
+  font-size:.70rem !important;
+  gap:12px !important;
+}
+.stats-strip{
+  margin-top:12px !important;
+}
+.data-section{
+  margin-top:16px !important;
+}
+
+/* Desktop scaling: keep the requested 80%-style landing composition. */
+@media (min-width:1200px) and (max-height:800px){
+  .app{padding-top:9px !important}
+  .skyline-brand-logo{height:62px}
+  .community-title{font-size:.72rem;margin-top:5px}
+  .brand p{font-size:.68rem !important;margin-top:7px !important}
+  .topbar{margin-bottom:8px !important}
+  .game-settings{padding:9px 11px !important}
+  .table-wrap{height:50vh !important;min-height:350px !important}
+}
+
+/* Graceful fallback when the viewport is narrower.
+   The full desktop composition returns once the browser is wide enough. */
+@media (max-width:1120px){
+  .app{
+    width:92vw !important;
+    min-width:0;
+  }
+  .topbar{
+    grid-template-columns:1fr 1fr !important;
+  }
+  .brand{
+    grid-column:1;
+  }
+  .controls{
+    grid-column:2;
+  }
+  .game-settings{
+    grid-column:1/-1;
+  }
+  .table-wrap{
+    height:58vh !important;
+    min-height:500px !important;
+  }
+}
+
+@media (max-width:760px){
+  .app{width:94vw !important}
+  .topbar{display:flex !important;flex-direction:column !important}
+  .controls{flex-direction:row !important;flex-wrap:wrap !important}
+  .controls button{width:auto;flex:1 1 45%}
+  .game-settings{grid-template-columns:1fr 1fr !important}
+  .hud{grid-template-columns:1fr 1fr !important}
+  .hud-card.center{grid-column:span 2}
+  .table-wrap{height:680px !important;min-height:680px !important}
+  .table{width:80% !important;height:38% !important}
+}
+
+
+
+/* =========================================================
+   SCREENSHOT LAYOUT MERGE — 2026-08-29
+   Visual composition only. Game logic and the existing 80vw
+   desktop width are preserved; the page is NOT widened.
+   ========================================================= */
+@media (min-width:1121px){
+  body{
+    background:
+      radial-gradient(circle at 50% 8%,rgba(24,51,122,.16),transparent 32%),
+      linear-gradient(180deg,#020714 0%,#030815 52%,#020612 100%) !important;
+  }
+
+  .app{
+    width:80vw !important;
+    max-width:1500px !important;
+    min-width:900px !important;
+    padding:12px 12px 26px !important;
+    border:1px solid rgba(91,85,214,.52);
+    border-radius:22px;
+    background:linear-gradient(180deg,rgba(2,8,24,.40),rgba(2,7,20,.18));
+    box-shadow:0 22px 70px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.02);
+  }
+
+  .topbar{
+    display:grid !important;
+    grid-template-columns:minmax(0,1.02fr) minmax(155px,.39fr) minmax(0,1.35fr) !important;
+    align-items:stretch !important;
+    gap:14px !important;
+    margin-bottom:14px !important;
+  }
+
+  .brand{
+    padding:8px 4px 0 10px !important;
+    justify-content:flex-start !important;
+  }
+  .skyline-brand-logo{
+    width:min(100%,365px) !important;
+    height:66px !important;
+    object-fit:cover !important;
+    object-position:center 18% !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+    filter:saturate(1.14) contrast(1.06) brightness(1.06) !important;
+  }
+  .community-title{
+    width:min(100%,365px) !important;
+    margin-top:6px !important;
+    font-size:.72rem !important;
+    line-height:1 !important;
+    letter-spacing:.34em !important;
+    text-align:center !important;
+  }
+  .community-title::before,
+  .community-title::after{
+    content:"";
+    display:inline-block;
+    width:24px;
+    height:2px;
+    margin:0 9px 3px;
+    background:linear-gradient(90deg,#19dbff,#bd20ff);
+    box-shadow:0 0 8px rgba(126,75,255,.5);
+  }
+  .brand p{
+    margin:18px 0 0 !important;
+    max-width:370px !important;
+    color:#c9cedd !important;
+    font-size:.75rem !important;
+    line-height:1.63 !important;
+  }
+
+  .controls{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    grid-template-rows:38px 44px 44px !important;
+    gap:10px !important;
+    align-content:center !important;
+    padding:31px 0 0 !important;
+  }
+  .controls button{
+    width:100% !important;
+    min-width:0 !important;
+    min-height:0 !important;
+    padding:8px 8px !important;
+    font-size:.72rem !important;
+    border-radius:10px !important;
+  }
+  #resetBtn{
+    grid-column:2 !important;
+    grid-row:1 !important;
+  }
+  #startBtn{
+    grid-column:1 / -1 !important;
+    grid-row:2 !important;
+    font-size:.68rem !important;
+  }
+  #startRoundBtn{
+    grid-column:1 !important;
+    grid-row:3 !important;
+  }
+  #nextRoundBtn{
+    grid-column:2 !important;
+    grid-row:3 !important;
+  }
+
+  .game-settings{
+    margin:16px 0 0 !important;
+    padding:14px 16px 12px !important;
+    display:grid !important;
+    grid-template-columns:1.05fr 1.10fr .86fr !important;
+    grid-template-areas:
+      "players names min"
+      "max month month"
+      "note note note"
+      "error error error" !important;
+    gap:12px 14px !important;
+    align-content:center !important;
+    border:1px solid rgba(110,136,199,.17) !important;
+    border-radius:15px !important;
+    background:linear-gradient(180deg,rgba(6,18,36,.84),rgba(5,16,33,.75)) !important;
+  }
+  .game-settings label:nth-of-type(1){grid-area:players}
+  .game-settings label:nth-of-type(2){grid-area:names}
+  .game-settings label:nth-of-type(3){grid-area:min}
+  .game-settings label:nth-of-type(4){grid-area:max}
+  .game-settings label:nth-of-type(5){grid-area:month}
+  .settings-note{grid-area:note !important}
+  .settings-error{grid-area:error !important}
+  .game-settings label{
+    color:#e2e5ee !important;
+    font-size:.68rem !important;
+    gap:6px !important;
+  }
+  .game-settings input,
+  .random-names-btn,
+  .count-btn{
+    height:36px !important;
+  }
+  .game-settings input{
+    padding:7px 9px !important;
+    font-size:.75rem !important;
+    background:linear-gradient(180deg,rgba(17,30,55,.94),rgba(11,23,43,.94)) !important;
+  }
+  .count-btn{
+    width:36px !important;
+    flex:0 0 36px !important;
+    font-size:1rem !important;
+  }
+  .random-names-btn{
+    padding:0 9px !important;
+    font-size:.65rem !important;
+  }
+  .settings-note{
+    padding-top:3px !important;
+    font-size:.63rem !important;
+    color:#c4c9d8 !important;
+  }
+
+  .hud{
+    display:grid !important;
+    grid-template-columns:1.12fr .62fr 1.12fr !important;
+    gap:0 !important;
+    margin:0 2px 12px !important;
+    border:1px solid rgba(121,145,196,.24);
+    border-radius:14px;
+    overflow:hidden;
+    background:linear-gradient(180deg,rgba(7,17,35,.86),rgba(4,13,29,.82));
+  }
+  .hud-card{
+    min-height:62px !important;
+    padding:10px 17px !important;
+    border:0 !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    position:relative;
+  }
+  .hud-card + .hud-card::before{
+    content:"";
+    position:absolute;
+    left:0;
+    top:10px;
+    bottom:10px;
+    width:1px;
+    background:rgba(255,255,255,.07);
+  }
+  .hud-card.center{min-width:0 !important}
+  .label{
+    font-size:.63rem !important;
+    letter-spacing:.02em !important;
+    color:#cbd0dc !important;
+  }
+  .value{
+    margin-top:4px !important;
+    font-size:.96rem !important;
+  }
+
+  .table-wrap{
+    height:50.5vw !important;
+    max-height:590px !important;
+    min-height:430px !important;
+    border-radius:20px !important;
+    background:
+      radial-gradient(circle at 50% 42%,rgba(12,39,89,.18),transparent 46%),
+      linear-gradient(180deg,rgba(2,11,31,.92),rgba(2,10,27,.97)) !important;
+    border:1px solid rgba(103,131,191,.22) !important;
+    box-shadow:inset 0 0 55px rgba(1,7,23,.42),0 12px 35px rgba(0,0,0,.28) !important;
+  }
+  .table-wrap::after{
+    content:"The lowest unique guess wins the pot.  Good luck and have fun!  ⭐";
+    position:absolute;
+    left:0;
+    right:0;
+    bottom:0;
+    height:39px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#c4c9d6;
+    font-size:.67rem;
+    border-top:1px solid rgba(255,255,255,.05);
+    background:linear-gradient(180deg,rgba(2,9,24,.20),rgba(3,12,29,.62));
+    z-index:3;
+    pointer-events:none;
+  }
+  .table{
+    top:50% !important;
+    width:61% !important;
+    height:48% !important;
+    border-width:17px !important;
+    border-color:#7a431d !important;
+    background:
+      radial-gradient(circle at 48% 40%,rgba(12,112,76,.17),transparent 48%),
+      linear-gradient(180deg,#07543c,#033b2f) !important;
+    box-shadow:
+      inset 0 0 0 3px rgba(255,170,65,.22),
+      inset 0 0 0 7px rgba(20,7,2,.26),
+      inset 0 -24px 46px rgba(0,0,0,.28),
+      0 13px 30px rgba(0,0,0,.46) !important;
+  }
+  .table:after{
+    font-size:clamp(1rem,2.4vw,2.3rem) !important;
+    letter-spacing:.31em !important;
+    color:rgba(255,255,255,.10) !important;
+  }
+
+  .seat{
+    width:108px !important;
+    min-height:76px !important;
+  }
+  .seat-inner{
+    padding:7px 8px !important;
+    border-radius:16px !important;
+    background:linear-gradient(180deg,rgba(8,19,40,.94),rgba(5,14,31,.96)) !important;
+    border-color:rgba(139,157,203,.20) !important;
+    box-shadow:0 12px 25px rgba(0,0,0,.25) !important;
+  }
+  .avatar{
+    width:42px !important;
+    height:42px !important;
+    margin:0 auto 5px !important;
+    font-size:21px !important;
+    border-width:2px !important;
+    background:
+      radial-gradient(circle at 34% 28%,rgba(255,255,255,.5),transparent 22%),
+      linear-gradient(145deg,#4549ca,#12166d) !important;
+  }
+  .name{font-size:.73rem !important}
+  .chips{font-size:.66rem !important;color:#f3f4f8 !important}
+  .wins{font-size:.58rem !important;color:#b9c0d0 !important}
+
+  .table-wrap.many-players .seat{width:88px !important}
+  .table-wrap.many-players .avatar{width:34px !important;height:34px !important;font-size:17px !important}
+  .table-wrap.crowded-players .seat{width:72px !important}
+  .table-wrap.crowded-players .avatar{width:28px !important;height:28px !important;font-size:14px !important}
+
+  .pot{
+    width:90px !important;
+  }
+  .pot-stack{height:28px !important}
+  .pot-value{
+    padding:5px 10px !important;
+    font-size:.78rem !important;
+    color:#ffe66d !important;
+    background:rgba(1,11,21,.86) !important;
+  }
+  .message{
+    top:5% !important;
+    font-size:.68rem !important;
+  }
+  .message.show{top:4% !important}
+}
+
+
+/* === Human Play mode: keeps the existing 80vw layout and table size === */
+.mode-toggle-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+  width:100%;
+}
+.mode-toggle-row button{
+  min-width:0;
+  padding-left:7px !important;
+  padding-right:7px !important;
+  font-size:.66rem !important;
+  white-space:nowrap;
+}
+#playGameBtn.active-mode{
+  background:linear-gradient(180deg,#7ee2a8,#3eae72);
+  color:#07130d;
+  border-color:#aaf2c6;
+}
+#startBtn.active-mode{
+  box-shadow:0 0 0 2px rgba(248,211,106,.15),0 8px 20px rgba(0,0,0,.22);
+}
+.seat-guess-wrap{
+  display:none;
+  margin-top:5px;
+  gap:3px;
+  align-items:center;
+}
+.table-wrap.human-play .seat.eligible .seat-guess-wrap{display:flex}
+.seat-guess{
+  width:100%;
+  min-width:0;
+  height:24px;
+  padding:2px 4px;
+  border-radius:7px;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(4,10,24,.88);
+  color:#fff;
+  font:700 .56rem/1 system-ui,sans-serif;
+  text-align:center;
+  outline:none;
+}
+.seat-guess:focus{border-color:rgba(248,211,106,.8);box-shadow:0 0 0 2px rgba(248,211,106,.12)}
+.seat-guess::placeholder{color:rgba(255,255,255,.36)}
+.seat.winner .seat-guess-wrap,.seat:not(.eligible) .seat-guess-wrap{display:none !important}
+#submitGuessesBtn{
+  position:absolute;
+  left:50%;
+  bottom:5%;
+  transform:translateX(-50%);
+  z-index:45;
+  display:none;
+  min-width:128px;
+  padding:8px 12px;
+  border-radius:10px;
+  font-size:.68rem;
+}
+.table-wrap.human-play #submitGuessesBtn{display:block}
+#submitGuessesBtn:hover{transform:translateX(-50%) translateY(-1px)}
+.table-wrap.many-players .seat-guess{height:21px;font-size:.49rem}
+.table-wrap.crowded-players .seat-guess{height:19px;font-size:.43rem;padding:1px 2px}
+@media(max-width:1120px){
+  .mode-toggle-row button{font-size:.62rem !important}
+}
+
+
+/* === v2 requested refinements: narrower site, larger logo, clean mode buttons === */
+@media (min-width:1121px){
+  .app{
+    width:72vw !important;
+    max-width:1320px !important;
+    min-width:820px !important;
+  }
+  .topbar{
+    grid-template-columns:minmax(300px,1.08fr) minmax(190px,.48fr) minmax(390px,1.34fr) !important;
+  }
+  .skyline-brand-logo{
+    width:min(100%,410px) !important;
+    height:82px !important;
+    object-fit:cover !important;
+  }
+  .community-title{width:min(100%,410px) !important;}
+  .controls{
+    grid-template-columns:1fr !important;
+    grid-template-rows:auto !important;
+    padding-top:24px !important;
+  }
+  .controls #resetBtn{width:46% !important;justify-self:end;}
+  .mode-toggle-row{
+    grid-template-columns:1fr 1fr !important;
+    gap:8px !important;
+    width:100% !important;
+  }
+  .mode-toggle-row button{
+    min-height:42px !important;
+    font-size:.64rem !important;
+    white-space:normal !important;
+    line-height:1.15 !important;
+  }
+  #startRoundBtn,#nextRoundBtn{display:none !important;}
+}
+@media (min-width:761px) and (max-width:1120px){
+  .app{width:86vw !important;}
+  .skyline-brand-logo{width:min(100%,390px) !important;height:78px !important;}
+}
+
+/* Duplicate-guess warning dialog */
+.tie-warning-overlay{
+  position:fixed;inset:0;z-index:10050;display:none;align-items:center;justify-content:center;
+  padding:20px;background:rgba(2,6,18,.82);backdrop-filter:blur(7px);
+}
+.tie-warning-overlay.show{display:flex;}
+.tie-warning-card{
+  width:min(460px,92vw);padding:24px 22px 20px;border-radius:20px;text-align:center;
+  background:linear-gradient(180deg,rgba(20,29,58,.98),rgba(8,14,31,.98));
+  border:1px solid rgba(248,211,106,.55);box-shadow:0 26px 70px rgba(0,0,0,.5),0 0 34px rgba(248,211,106,.10);
+}
+.tie-warning-icon{font-size:2.2rem;margin-bottom:7px;}
+.tie-warning-card h3{margin:0 0 10px;font-size:1.15rem;color:#ffe58a;}
+.tie-warning-card p{margin:0 auto 16px;max-width:390px;color:#e7eaf4;font-size:.84rem;line-height:1.55;}
+.tie-warning-card button{min-width:125px;}
+.table-wrap.human-play .seat.tie-reenter .seat-inner{
+  border-color:rgba(248,211,106,.88);box-shadow:0 0 0 2px rgba(248,211,106,.14),0 0 28px rgba(248,211,106,.12);
+}
+
+
+/* === v3: reference-header composition === */
+@media (min-width:1121px){
+  .app{
+    width:68vw !important;
+    max-width:1180px !important;
+    min-width:820px !important;
+  }
+
+  .topbar{
+    display:grid !important;
+    grid-template-columns:minmax(430px,1.45fr) minmax(250px,.72fr) !important;
+    grid-template-areas:
+      "brand controls"
+      "settings settings" !important;
+    align-items:start !important;
+    gap:12px 18px !important;
+    margin-bottom:10px !important;
+  }
+
+  .brand{grid-area:brand !important;}
+  .controls{grid-area:controls !important;}
+  .game-settings{grid-area:settings !important;}
+
+  .skyline-brand-logo{
+    width:min(100%,460px) !important;
+    height:96px !important;
+    object-fit:cover !important;
+    object-position:center 18% !important;
+  }
+  .community-title{
+    width:min(100%,460px) !important;
+    font-size:.88rem !important;
+    letter-spacing:.42em !important;
+    margin-top:5px !important;
+  }
+  .brand p{
+    max-width:455px !important;
+    font-size:.75rem !important;
+    line-height:1.52 !important;
+    margin-top:10px !important;
+  }
+
+  .controls{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    grid-template-areas:
+      ". reset"
+      "auto auto"
+      "play play"
+      "start next" !important;
+    gap:9px 10px !important;
+    align-content:start !important;
+    padding:8px 0 0 !important;
+    width:100% !important;
+  }
+
+  .controls #resetBtn{
+    grid-area:reset !important;
+    width:72px !important;
+    min-width:72px !important;
+    height:36px !important;
+    min-height:36px !important;
+    justify-self:end !important;
+    padding:0 12px !important;
+    border-radius:10px !important;
+    font-size:.72rem !important;
+  }
+
+  .mode-toggle-row{
+    display:contents !important;
+  }
+  #startBtn{
+    grid-area:auto !important;
+  }
+  #playGameBtn{
+    grid-area:play !important;
+  }
+  #startBtn,#playGameBtn{
+    width:100% !important;
+    height:42px !important;
+    min-height:42px !important;
+    padding:0 14px !important;
+    border-radius:11px !important;
+    font-size:.70rem !important;
+    line-height:1 !important;
+    white-space:nowrap !important;
+  }
+  #startBtn{
+    background:linear-gradient(180deg,#f6d35f,#d99d21) !important;
+    border-color:#ffe38b !important;
+    color:#151006 !important;
+    box-shadow:0 8px 20px rgba(221,163,38,.18) !important;
+  }
+  #playGameBtn{
+    background:linear-gradient(180deg,#50d7c8,#198f9e) !important;
+    border-color:#82f5ea !important;
+    color:#03191d !important;
+    box-shadow:0 8px 20px rgba(38,188,178,.16) !important;
+  }
+  #startBtn:hover,#playGameBtn:hover{filter:brightness(1.06);}
+  #startBtn.active-mode{box-shadow:0 0 0 2px rgba(255,228,139,.22),0 0 24px rgba(246,211,95,.22) !important;}
+  #playGameBtn.active-mode{box-shadow:0 0 0 2px rgba(130,245,234,.20),0 0 24px rgba(80,215,200,.22) !important;}
+
+  #startRoundBtn{
+    grid-area:start !important;
+    display:block !important;
+    width:100% !important;
+    height:38px !important;
+    min-height:38px !important;
+    font-size:.68rem !important;
+  }
+  #nextRoundBtn{
+    grid-area:next !important;
+    display:block !important;
+    width:100% !important;
+    height:38px !important;
+    min-height:38px !important;
+    font-size:.68rem !important;
+  }
+
+  .game-settings{
+    margin-top:0 !important;
+    grid-template-columns:1.05fr 1.10fr .95fr .95fr 1.05fr !important;
+    grid-template-areas:"players names min max month" "note note note note note" !important;
+    padding:12px 14px !important;
+    gap:10px 12px !important;
+    border-radius:14px !important;
+  }
+  .game-settings label:nth-of-type(1){grid-area:players !important;}
+  .game-settings label:nth-of-type(2){grid-area:names !important;}
+  .game-settings label:nth-of-type(3){grid-area:min !important;}
+  .game-settings label:nth-of-type(4){grid-area:max !important;}
+  .game-settings label:nth-of-type(5){grid-area:month !important;}
+  .settings-note{grid-area:note !important;}
+}
+
+@media (min-width:761px) and (max-width:1120px){
+  .app{width:82vw !important;}
+  .skyline-brand-logo{width:min(100%,420px) !important;height:88px !important;}
+  .mode-toggle-row button{min-height:40px !important;}
+}
+
+
+/* === v5 button arrangement — matched to supplied reference === */
+@media (min-width:1121px){
+  .controls{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    grid-template-rows:40px 42px 42px !important;
+    gap:10px 10px !important;
+    align-content:center !important;
+    justify-content:stretch !important;
+    padding:8px 0 !important;
+  }
+  #resetBtn{
+    grid-column:2 !important;
+    grid-row:1 !important;
+    width:72px !important;
+    min-width:72px !important;
+    justify-self:end !important;
+    align-self:center !important;
+  }
+  .mode-toggle-row{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    grid-column:1 / -1 !important;
+    grid-row:2 !important;
+    gap:10px !important;
+    width:100% !important;
+  }
+  #startBtn,
+  #playGameBtn{
+    width:100% !important;
+    min-width:0 !important;
+    height:42px !important;
+    padding:8px 9px !important;
+    font-size:.61rem !important;
+    white-space:nowrap !important;
+    border-radius:10px !important;
+  }
+  #startBtn{grid-column:1 !important;grid-row:auto !important;}
+  #playGameBtn{grid-column:2 !important;grid-row:auto !important;}
+  #startRoundBtn{
+    grid-column:1 !important;
+    grid-row:3 !important;
+    width:100% !important;
+    height:42px !important;
+  }
+  #nextRoundBtn{
+    grid-column:2 !important;
+    grid-row:3 !important;
+    width:100% !important;
+    height:42px !important;
+  }
+}
+</style>
+
+<style id="v6-retro-reference-layout">
+/* Retro Skyline header and two-column composition based on the approved visual reference. */
+@media (min-width:1121px){
+  .app{width:68vw !important;max-width:1180px !important;min-width:820px !important;}
+  .topbar{
+    display:grid !important;
+    grid-template-columns:minmax(460px,1.05fr) minmax(500px,1fr) !important;
+    grid-template-areas:"banner banner" "brand settings" "controls settings" !important;
+    column-gap:24px !important;row-gap:8px !important;align-items:start !important;
+    margin-bottom:12px !important;
+  }
+  .header-banner{grid-area:banner !important;}
+  .brand{grid-area:brand !important;position:relative !important;min-height:auto !important;padding:0 !important;}
+  .controls{grid-area:controls !important;}
+  .game-settings{grid-area:settings !important;align-self:stretch !important;}
+
+  .brand p{
+    max-width:520px !important;margin:2px 0 0 8px !important;
+    font-size:.73rem !important;line-height:1.55 !important;color:#c8cee0 !important;
+  }
+  .controls{
+    display:grid !important;grid-template-columns:1fr 1fr !important;
+    grid-template-areas:"reset reset" "auto play" "start next" !important;
+    grid-template-rows:34px 42px 38px !important;
+    gap:9px 10px !important;padding:0 0 0 8px !important;align-content:start !important;
+  }
+  #resetBtn{grid-area:reset !important;width:72px !important;height:34px !important;justify-self:end !important;}
+  .mode-toggle-row{display:contents !important;}
+  #startBtn{grid-area:auto !important;}
+  #playGameBtn{grid-area:play !important;}
+  #startRoundBtn{grid-area:start !important;display:block !important;}
+  #nextRoundBtn{grid-area:next !important;display:block !important;}
+  #startBtn,#playGameBtn{height:42px !important;min-height:42px !important;width:100% !important;font-size:.62rem !important;white-space:nowrap !important;}
+  #startRoundBtn,#nextRoundBtn{height:38px !important;min-height:38px !important;width:100% !important;font-size:.66rem !important;}
+  #startBtn{background:linear-gradient(180deg,#ffd75d,#d99a13) !important;border-color:#ffe487 !important;color:#171006 !important;}
+  #playGameBtn{background:linear-gradient(180deg,#34d8ff,#087da9) !important;border-color:#78eaff !important;color:#021319 !important;box-shadow:0 8px 20px rgba(31,190,231,.16) !important;}
+  .game-settings{
+    margin:0 !important;padding:16px 16px 14px !important;border-radius:16px !important;
+    display:grid !important;grid-template-columns:repeat(3,minmax(115px,1fr)) !important;
+    grid-template-areas:"players names min" "max month month" "note note note" !important;
+    gap:12px 14px !important;background:linear-gradient(180deg,rgba(8,18,38,.96),rgba(6,15,32,.94)) !important;
+    border:1px solid rgba(102,139,202,.20) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.025) !important;
+  }
+  .game-settings label:nth-of-type(1){grid-area:players !important;}
+  .game-settings label:nth-of-type(2){grid-area:names !important;}
+  .game-settings label:nth-of-type(3){grid-area:min !important;}
+  .game-settings label:nth-of-type(4){grid-area:max !important;}
+  .game-settings label:nth-of-type(5){grid-area:month !important;}
+  .settings-note{grid-area:note !important;font-size:.61rem !important;}
+  .settings-error{grid-column:1/-1 !important;}
+}
+
+/* New retro logo, intentionally slimmer/lighter than the previous bold treatment. */
+.retro-brand-art{
+  position:relative;width:min(100%,455px);height:150px;overflow:hidden;
+  border-radius:16px;background:
+    radial-gradient(circle at 78% 19%,rgba(117,93,255,.22),transparent 15%),
+    radial-gradient(circle at 42% 18%,rgba(0,126,255,.10),transparent 25%),
+    linear-gradient(180deg,#02081a 0%,#07102b 54%,#0b1232 100%);
+  box-shadow:inset 0 -28px 48px rgba(22,9,72,.32),0 14px 32px rgba(0,0,0,.25);
+}
+.retro-brand-art:before{
+  content:"";position:absolute;inset:0;opacity:.76;pointer-events:none;
+  background-image:
+    radial-gradient(circle at 6% 15%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 18% 24%,#90b5ff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 33% 10%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 48% 28%,#8aa8ff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 65% 11%,#fff 0 1px,transparent 1.5px),
+    radial-gradient(circle at 91% 22%,#9cc2ff 0 1px,transparent 1.5px);
+}
+.retro-skyline-word{
+  position:absolute;left:16px;top:7px;z-index:4;
+  font-family:"Arial Narrow","Segoe UI",Arial,sans-serif;
+  font-size:3.55rem;font-weight:600;font-style:italic;line-height:.9;letter-spacing:.055em;
+  transform:skewX(-8deg);color:transparent;
+  background:linear-gradient(180deg,#ff33df 0%,#a340ff 34%,#536aff 60%,#20c9ff 88%,#dbf6ff 100%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-stroke:1px rgba(238,198,255,.72);
+  text-shadow:0 2px 0 rgba(3,5,18,.95),0 0 9px rgba(121,61,255,.42);
+}
+.retro-community{
+  position:absolute;left:26px;top:67px;z-index:5;display:flex;align-items:center;gap:10px;
+  font-size:.72rem;font-weight:700;letter-spacing:.32em;color:#f7f7ff;text-shadow:0 0 10px rgba(255,255,255,.18);
+}
+.retro-community span{display:block;width:32px;height:2px;background:linear-gradient(90deg,#37caff,#d727ff);box-shadow:0 0 7px rgba(108,78,255,.45);}
+.shooting-star{position:absolute;right:34px;top:24px;width:86px;height:2px;z-index:3;transform:rotate(-31deg);background:linear-gradient(90deg,transparent,#3758ff 50%,#e9f3ff);box-shadow:0 0 7px rgba(82,92,255,.65);}
+.shooting-star:after{content:"";position:absolute;right:-2px;top:-3px;width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 7px #fff,0 0 15px #616aff;}
+.city-silhouette{position:absolute;left:0;right:0;bottom:0;height:62px;z-index:2;border-bottom:1px solid rgba(103,30,255,.32);}
+.city-silhouette i{position:relative;display:inline-block;vertical-align:bottom;width:5.4%;margin-right:.4%;background:#02050d;border-top:1px solid rgba(68,30,160,.55);box-shadow:inset 4px 0 0 rgba(50,18,97,.08);}
+.city-silhouette i:after{content:"";position:absolute;left:25%;top:7px;width:3px;height:3px;background:#ff3bd1;box-shadow:10px 7px 0 #ff3bd1,0 13px 0 #6d64ff,9px 21px 0 #e235ff,0 30px 0 #ff4938;opacity:.85;}
+.city-silhouette i:nth-child(1){height:22px}.city-silhouette i:nth-child(2){height:34px}.city-silhouette i:nth-child(3){height:25px}.city-silhouette i:nth-child(4){height:45px}.city-silhouette i:nth-child(5){height:30px}.city-silhouette i:nth-child(6){height:53px}.city-silhouette i:nth-child(7){height:32px}.city-silhouette i:nth-child(8){height:58px}.city-silhouette i:nth-child(9){height:39px}.city-silhouette i:nth-child(10){height:48px}.city-silhouette i:nth-child(11){height:28px}.city-silhouette i:nth-child(12){height:57px}.city-silhouette i:nth-child(13){height:35px}.city-silhouette i:nth-child(14){height:43px}.city-silhouette i:nth-child(15){height:29px}.city-silhouette i:nth-child(16){height:52px}
+
+@media (max-width:1120px){
+  .retro-brand-art{width:min(100%,455px);height:142px;}
+  .retro-skyline-word{font-size:3.05rem;}
+  .retro-community{top:60px;font-size:.64rem;}
+}
+
+/* Full-width Skyline banner */
+.header-banner{width:100%;margin:0 0 10px 0;}
+.header-banner .retro-brand-art{width:100% !important;max-width:none !important;height:126px !important;border-radius:16px !important;}
+.header-banner .retro-skyline-word{left:22px !important;top:10px !important;font-size:3.35rem !important;}
+.header-banner .retro-community{left:34px !important;top:68px !important;}
+.header-banner .shooting-star{right:31% !important;top:27px !important;width:110px !important;}
+.header-banner .city-silhouette{height:66px !important;}
+@media (max-width:1120px){.header-banner .retro-brand-art{height:118px !important}.header-banner .retro-skyline-word{font-size:2.8rem !important}.header-banner .retro-community{top:59px !important}}
+</style>
+
+
+<style id="v8-exact-approved-design">
+/* Approved Skyline reference: same palette, button treatment and composition. */
+:root{
+  --sky-bg:#020714;
+  --panel:#061226;
+  --panel-deep:#031021;
+  --line:#2a3e64;
+  --text:#f7f8fc;
+  --muted:#c4cada;
+  --gold1:#ffd95e;
+  --gold2:#d99a13;
+  --cyan1:#31dcff;
+  --cyan2:#087ea9;
+  --green1:#39c95a;
+  --green2:#087d24;
+}
+@media (min-width:1121px){
+  body{
+    background:linear-gradient(180deg,#01050f 0%,#020817 60%,#01050e 100%) !important;
+  }
+  .app{
+    width:68vw !important;
+    max-width:1180px !important;
+    min-width:900px !important;
+    padding:10px 10px 20px !important;
+    border:1px solid rgba(96,93,218,.48) !important;
+    border-radius:20px !important;
+    background:#020817 !important;
+  }
+  .topbar{
+    display:grid !important;
+    grid-template-columns:minmax(0,1.17fr) minmax(0,.97fr) !important;
+    grid-template-areas:"hero settings" !important;
+    gap:18px !important;
+    align-items:stretch !important;
+    margin-bottom:12px !important;
+  }
+  .hero-pane{
+    grid-area:hero !important;
+    position:relative !important;
+    min-height:238px !important;
+    overflow:hidden !important;
+    border-radius:15px !important;
+    background:
+      radial-gradient(circle at 72% 15%,rgba(74,61,255,.16),transparent 24%),
+      linear-gradient(180deg,#020819 0%,#06112b 54%,#020817 100%) !important;
+  }
+  .header-banner{
+    position:absolute !important;
+    inset:0 !important;
+    margin:0 !important;
+    z-index:0 !important;
+  }
+  .header-banner .retro-brand-art{
+    width:100% !important;
+    height:100% !important;
+    max-width:none !important;
+    border-radius:0 !important;
+    background:transparent !important;
+    box-shadow:none !important;
+  }
+  .header-banner .retro-skyline-word{
+    left:20px !important;
+    top:17px !important;
+    font-family:"Arial Narrow","Segoe UI",Arial,sans-serif !important;
+    font-size:3.12rem !important;
+    font-weight:560 !important;
+    letter-spacing:.062em !important;
+    -webkit-text-stroke:.8px rgba(244,209,255,.80) !important;
+    background:linear-gradient(180deg,#ff31d8 0%,#aa3dff 33%,#5668ff 61%,#19ceff 89%,#e8fbff 100%) !important;
+    -webkit-background-clip:text !important;
+    background-clip:text !important;
+    text-shadow:0 2px 0 #020310,0 0 10px rgba(118,55,255,.38) !important;
+  }
+  .header-banner .retro-community{
+    left:29px !important;
+    top:76px !important;
+    font-size:.70rem !important;
+    font-weight:800 !important;
+    letter-spacing:.31em !important;
+  }
+  .header-banner .shooting-star{
+    right:22% !important;
+    top:38px !important;
+    width:100px !important;
+  }
+  .header-banner .city-silhouette{
+    height:86px !important;
+    bottom:62px !important;
+    opacity:.95 !important;
+    border-bottom:0 !important;
+  }
+  .brand{
+    position:absolute !important;
+    z-index:4 !important;
+    left:22px !important;
+    bottom:14px !important;
+    width:44% !important;
+    padding:0 !important;
+  }
+  .brand p{
+    margin:0 !important;
+    max-width:none !important;
+    font-size:.69rem !important;
+    line-height:1.57 !important;
+    color:#e0e3ec !important;
+  }
+  .controls{
+    position:absolute !important;
+    z-index:5 !important;
+    right:14px !important;
+    bottom:14px !important;
+    width:52% !important;
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    grid-template-areas:"reset reset" "modes modes" "start next" !important;
+    grid-template-rows:34px 42px 38px !important;
+    gap:9px 9px !important;
+    padding:0 !important;
+  }
+  #resetBtn{
+    grid-area:reset !important;
+    width:72px !important;
+    height:34px !important;
+    justify-self:end !important;
+    border-radius:9px !important;
+    background:linear-gradient(180deg,#0b1730,#071124) !important;
+    border:1px solid #53617e !important;
+    color:#fff !important;
+    box-shadow:none !important;
+  }
+  .mode-toggle-row{
+    grid-area:modes !important;
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:9px !important;
+    width:100% !important;
+  }
+  #startBtn,#playGameBtn{
+    width:100% !important;
+    height:42px !important;
+    min-height:42px !important;
+    padding:0 9px !important;
+    border-radius:10px !important;
+    font-size:.60rem !important;
+    font-weight:800 !important;
+    white-space:nowrap !important;
+    box-shadow:0 7px 16px rgba(0,0,0,.25) !important;
+  }
+  #startBtn{
+    background:linear-gradient(180deg,var(--gold1),var(--gold2)) !important;
+    border-color:#ffe58a !important;
+    color:#171006 !important;
+  }
+  #playGameBtn{
+    background:linear-gradient(180deg,var(--cyan1),var(--cyan2)) !important;
+    border-color:#79edff !important;
+    color:#02141b !important;
+  }
+  #startRoundBtn,#nextRoundBtn{
+    display:block !important;
+    width:100% !important;
+    height:38px !important;
+    min-height:38px !important;
+    border-radius:9px !important;
+    font-size:.66rem !important;
+  }
+  #startRoundBtn{grid-area:start !important;}
+  #nextRoundBtn{grid-area:next !important;}
+
+  .game-settings{
+    grid-area:settings !important;
+    margin:0 !important;
+    min-height:238px !important;
+    padding:16px 18px 14px !important;
+    display:grid !important;
+    grid-template-columns:1.04fr 1.23fr .90fr !important;
+    grid-template-areas:"players names min" "max month month" "note note note" "error error error" !important;
+    gap:13px 16px !important;
+    align-content:center !important;
+    border:1px solid rgba(87,119,177,.28) !important;
+    border-radius:15px !important;
+    background:linear-gradient(180deg,#061328,#041020) !important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.02) !important;
+  }
+  .game-settings label{font-size:.68rem !important;color:#eef0f6 !important;gap:6px !important;}
+  .game-settings label:nth-of-type(1){grid-area:players !important;}
+  .game-settings label:nth-of-type(2){grid-area:names !important;}
+  .game-settings label:nth-of-type(3){grid-area:min !important;}
+  .game-settings label:nth-of-type(4){grid-area:max !important;}
+  .game-settings label:nth-of-type(5){grid-area:month !important;}
+  .settings-note{grid-area:note !important;font-size:.62rem !important;color:#d3d7e1 !important;}
+  .settings-error{grid-area:error !important;}
+  .game-settings input,.random-names-btn,.count-btn{
+    height:38px !important;
+    border-radius:9px !important;
+    background:linear-gradient(180deg,#0b1a33,#071427) !important;
+    border:1px solid #405270 !important;
+  }
+  .random-names-btn{font-size:.64rem !important;}
+  .count-btn{width:37px !important;flex:0 0 37px !important;}
+
+  .hud{
+    margin:0 0 10px !important;
+    min-height:64px !important;
+    border-radius:12px !important;
+    border:1px solid #263c60 !important;
+    background:linear-gradient(180deg,#06152a,#041021) !important;
+  }
+  .hud-card{min-height:64px !important;padding:11px 16px !important;}
+  .label{font-size:.61rem !important;color:#cfd4df !important;}
+  .value{font-size:.92rem !important;}
+
+  .table-wrap{
+    height:520px !important;
+    min-height:520px !important;
+    max-height:520px !important;
+    border-radius:17px !important;
+    border:1px solid #24395d !important;
+    background:
+      radial-gradient(circle at 52% 40%,rgba(9,40,91,.22),transparent 45%),
+      linear-gradient(180deg,#020b20,#020919) !important;
+    overflow:hidden !important;
+  }
+  .table{
+    top:50% !important;
+    width:58% !important;
+    height:48% !important;
+    border-width:16px !important;
+    border-color:#7a4118 !important;
+    background:linear-gradient(180deg,#07563d,#033c2f) !important;
+    box-shadow:inset 0 0 0 3px rgba(255,172,58,.23),inset 0 0 0 7px rgba(26,7,0,.34),0 14px 34px rgba(0,0,0,.48) !important;
+  }
+  .table:after{font-size:2.05rem !important;color:rgba(255,255,255,.09) !important;}
+
+  /* Readable player cards, including manual guess entry. */
+  .seat{
+    width:142px !important;
+    min-height:92px !important;
+  }
+  .seat-inner{
+    min-height:90px !important;
+    padding:8px 10px !important;
+    border-radius:15px !important;
+    background:linear-gradient(180deg,rgba(7,19,39,.98),rgba(4,13,28,.98)) !important;
+    border:1px solid #364963 !important;
+    text-align:left !important;
+    display:grid !important;
+    grid-template-columns:46px 1fr !important;
+    grid-template-areas:"avatar name" "avatar chips" "avatar wins" "guess guess" !important;
+    column-gap:9px !important;
+    align-items:center !important;
+  }
+  .avatar{
+    grid-area:avatar !important;
+    width:46px !important;height:46px !important;margin:0 !important;
+    font-size:22px !important;border-width:2px !important;
+  }
+  .name{grid-area:name !important;font-size:.73rem !important;align-self:end !important;}
+  .chips{grid-area:chips !important;font-size:.65rem !important;margin:0 !important;}
+  .wins{grid-area:wins !important;font-size:.57rem !important;margin:0 !important;align-self:start !important;}
+  .seat-guess-wrap{
+    grid-area:guess !important;
+    margin-top:7px !important;
+    display:none;
+    grid-template-columns:auto 1fr !important;
+    gap:6px !important;
+    align-items:center !important;
+  }
+  .table-wrap.human-play .seat.eligible .seat-guess-wrap{display:grid !important;}
+  .seat-guess-label{
+    color:#f0f2f7 !important;
+    font-size:.53rem !important;
+    white-space:nowrap !important;
+  }
+  .seat-guess{
+    height:25px !important;
+    min-width:0 !important;
+    padding:3px 5px !important;
+    border-radius:6px !important;
+    border:1px solid #405473 !important;
+    font-size:.55rem !important;
+    background:#061225 !important;
+  }
+  .table-wrap.many-players .seat{width:108px !important;}
+  .table-wrap.many-players .seat-inner{grid-template-columns:36px 1fr !important;padding:6px !important;column-gap:5px !important;}
+  .table-wrap.many-players .avatar{width:36px !important;height:36px !important;font-size:17px !important;}
+  .table-wrap.many-players .seat-guess-label{font-size:.44rem !important;}
+  .table-wrap.many-players .seat-guess{height:22px !important;font-size:.48rem !important;}
+  .table-wrap.crowded-players .seat{width:88px !important;}
+  .table-wrap.crowded-players .seat-inner{grid-template-columns:30px 1fr !important;padding:5px !important;column-gap:4px !important;}
+  .table-wrap.crowded-players .avatar{width:30px !important;height:30px !important;font-size:14px !important;}
+  .table-wrap.crowded-players .seat-guess-wrap{grid-template-columns:1fr !important;gap:2px !important;}
+  .table-wrap.crowded-players .seat-guess-label{font-size:.40rem !important;}
+  .table-wrap.crowded-players .seat-guess{height:20px !important;font-size:.43rem !important;}
+
+  #submitGuessesBtn{
+    min-width:152px !important;
+    height:40px !important;
+    bottom:5.2% !important;
+    border-radius:8px !important;
+    font-size:.72rem !important;
+    background:linear-gradient(180deg,var(--green1),var(--green2)) !important;
+    border:1px solid #65df74 !important;
+    color:#fff !important;
+    box-shadow:0 8px 18px rgba(15,133,43,.26) !important;
+  }
+  .table-wrap::after{
+    height:36px !important;
+    color:#e0e3ea !important;
+    font-size:.63rem !important;
+  }
+}
+
+@media (max-width:1120px){
+  .hero-pane{position:relative;}
+  .seat-guess-label{font-size:.52rem;color:#eef1f7;white-space:nowrap;}
+}
+</style>
+
+
+<style id="v9-fixes">
+#resetBtn:disabled,#startBtn:disabled,#playGameBtn:disabled,#startRoundBtn:disabled,#nextRoundBtn:disabled{cursor:not-allowed;filter:saturate(.55);}
+.table-wrap.human-play .seat.eligible .seat-inner{border-color:rgba(80,220,255,.62)!important;box-shadow:0 0 0 1px rgba(80,220,255,.10),0 12px 28px rgba(0,0,0,.30)!important;}
+.table-wrap.human-play .seat.tie-reenter .seat-inner{border-color:rgba(255,211,92,.88)!important;box-shadow:0 0 0 2px rgba(255,211,92,.12),0 0 24px rgba(255,190,40,.14)!important;}
+.seat-guess{appearance:textfield;-moz-appearance:textfield;}
+.seat-guess::-webkit-outer-spin-button,.seat-guess::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+</style>
+
+<style id="v10-css-polish">
+/* ---------------------------------------------------------
+   V10: stable primary mode-button hover states + compact,
+   non-jumping player cards for manual amount entry.
+   --------------------------------------------------------- */
+
+/* Keep the two main mode buttons identical in geometry.
+   Hover only changes light/glow; it never moves or rescales them. */
+#startBtn,
+#playGameBtn{
+  width:100% !important;
+  height:42px !important;
+  min-height:42px !important;
+  padding:0 14px !important;
+  border-radius:11px !important;
+  transform:none !important;
+  translate:none !important;
+  scale:none !important;
+  transition:filter .16s ease, box-shadow .16s ease, border-color .16s ease !important;
+  will-change:filter,box-shadow;
+}
+#startBtn:hover:not(:disabled){
+  transform:none !important;
+  filter:brightness(1.08) saturate(1.04) !important;
+  border-color:#fff0ad !important;
+  box-shadow:0 8px 20px rgba(221,163,38,.18),0 0 18px rgba(246,211,95,.28) !important;
+}
+#playGameBtn:hover:not(:disabled){
+  transform:none !important;
+  filter:brightness(1.08) saturate(1.04) !important;
+  border-color:#a8fff6 !important;
+  box-shadow:0 8px 20px rgba(38,188,178,.16),0 0 18px rgba(80,215,200,.28) !important;
+}
+#startBtn:active:not(:disabled),
+#playGameBtn:active:not(:disabled){
+  transform:none !important;
+  filter:brightness(.98) !important;
+}
+#startBtn:disabled,
+#playGameBtn:disabled{
+  transform:none !important;
+  filter:saturate(.55) brightness(.78) !important;
+  box-shadow:none !important;
+}
+#startBtn.active-mode{
+  box-shadow:0 0 0 2px rgba(255,228,139,.22),0 0 24px rgba(246,211,95,.22) !important;
+}
+#playGameBtn.active-mode{
+  box-shadow:0 0 0 2px rgba(130,245,234,.20),0 0 24px rgba(80,215,200,.22) !important;
+}
+
+/* Compact player cards. A reserved guess row prevents the card from
+   changing height when Play mode turns the amount field on/off. */
+.seat{
+  width:122px !important;
+  min-height:80px !important;
+}
+.seat-inner{
+  min-height:80px !important;
+  height:80px !important;
+  padding:6px 7px !important;
+  border-radius:13px !important;
+  grid-template-columns:40px minmax(0,1fr) !important;
+  grid-template-rows:auto auto auto 23px !important;
+  grid-template-areas:"avatar name" "avatar chips" "avatar wins" "guess guess" !important;
+  column-gap:7px !important;
+  row-gap:0 !important;
+  overflow:hidden !important;
+}
+.avatar{
+  width:40px !important;
+  height:40px !important;
+  font-size:19px !important;
+}
+.name{
+  font-size:.67rem !important;
+  line-height:1.08 !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+.chips{
+  font-size:.59rem !important;
+  line-height:1.05 !important;
+}
+.wins{
+  font-size:.51rem !important;
+  line-height:1.05 !important;
+}
+
+/* Reserve the amount-entry row at all times so the simulation seats
+   never jump, grow, or overlap when manual Play mode is enabled. */
+.seat-guess-wrap{
+  display:grid !important;
+  grid-template-columns:auto minmax(0,1fr) !important;
+  gap:4px !important;
+  align-items:center !important;
+  margin-top:3px !important;
+  min-height:21px !important;
+  visibility:hidden;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .12s ease !important;
+}
+.table-wrap.human-play .seat.eligible .seat-guess-wrap{
+  visibility:visible !important;
+  opacity:1 !important;
+  pointer-events:auto !important;
+}
+.seat-guess-label{
+  font-size:.45rem !important;
+  line-height:1 !important;
+}
+.seat-guess{
+  height:21px !important;
+  min-height:21px !important;
+  padding:2px 5px !important;
+  border-radius:5px !important;
+  font-size:.50rem !important;
+  line-height:1 !important;
+}
+
+/* Preserve compact geometry when more players are selected. */
+.table-wrap.many-players .seat{
+  width:96px !important;
+  min-height:72px !important;
+}
+.table-wrap.many-players .seat-inner{
+  height:72px !important;
+  min-height:72px !important;
+  padding:5px !important;
+  grid-template-columns:32px minmax(0,1fr) !important;
+  grid-template-rows:auto auto auto 20px !important;
+  column-gap:4px !important;
+}
+.table-wrap.many-players .avatar{
+  width:32px !important;
+  height:32px !important;
+  font-size:15px !important;
+}
+.table-wrap.many-players .name{font-size:.58rem !important;}
+.table-wrap.many-players .chips{font-size:.51rem !important;}
+.table-wrap.many-players .wins{font-size:.45rem !important;}
+.table-wrap.many-players .seat-guess-wrap{
+  grid-template-columns:1fr !important;
+  gap:1px !important;
+  min-height:20px !important;
+}
+.table-wrap.many-players .seat-guess-label{font-size:.38rem !important;}
+.table-wrap.many-players .seat-guess{height:18px !important;min-height:18px !important;font-size:.43rem !important;}
+
+.table-wrap.crowded-players .seat{
+  width:76px !important;
+  min-height:66px !important;
+}
+.table-wrap.crowded-players .seat-inner{
+  height:66px !important;
+  min-height:66px !important;
+  padding:4px !important;
+  grid-template-columns:27px minmax(0,1fr) !important;
+  grid-template-rows:auto auto auto 18px !important;
+  column-gap:3px !important;
+}
+.table-wrap.crowded-players .avatar{
+  width:27px !important;
+  height:27px !important;
+  font-size:13px !important;
+}
+.table-wrap.crowded-players .name{font-size:.50rem !important;}
+.table-wrap.crowded-players .chips{font-size:.44rem !important;}
+.table-wrap.crowded-players .wins{font-size:.39rem !important;}
+.table-wrap.crowded-players .seat-guess-label{display:none !important;}
+.table-wrap.crowded-players .seat-guess{height:17px !important;min-height:17px !important;font-size:.40rem !important;}
+
+/* Prevent the generic button hover rule from shifting the submit button. */
+#submitGuessesBtn:hover:not(:disabled){
+  transform:translateX(-50%) !important;
+  filter:brightness(1.07) !important;
+  box-shadow:0 8px 18px rgba(15,133,43,.26),0 0 16px rgba(80,220,105,.20) !important;
+}
+</style>
+
+
+<style id="v11-banner-button-fix">
+/* V11 — hard override for banner lettering and the four header controls.
+   This block intentionally comes last so older layout experiments cannot
+   shift or overlap these buttons. */
+@media (min-width:1121px){
+  .controls{
+    position:absolute !important;
+    right:14px !important;
+    bottom:14px !important;
+    width:53% !important;
+    height:auto !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+    grid-template-rows:34px 42px 38px !important;
+    grid-template-areas:
+      "reset reset"
+      "modes modes"
+      "start next" !important;
+    gap:9px 10px !important;
+    padding:0 !important;
+    margin:0 !important;
+    align-content:start !important;
+    align-items:stretch !important;
+    justify-items:stretch !important;
+    overflow:visible !important;
+  }
+  .mode-toggle-row{
+    grid-area:modes !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+    gap:10px !important;
+    width:100% !important;
+    height:42px !important;
+    min-width:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    position:static !important;
+  }
+  #resetBtn,
+  #startBtn,
+  #playGameBtn,
+  #startRoundBtn,
+  #nextRoundBtn{
+    position:static !important;
+    inset:auto !important;
+    float:none !important;
+    margin:0 !important;
+    box-sizing:border-box !important;
+    translate:none !important;
+    scale:none !important;
+  }
+  #resetBtn{
+    grid-area:reset !important;
+    justify-self:end !important;
+    width:72px !important;
+    min-width:72px !important;
+    max-width:72px !important;
+    height:34px !important;
+    min-height:34px !important;
+  }
+  #startBtn,#playGameBtn{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    height:42px !important;
+    min-height:42px !important;
+    padding:0 8px !important;
+    font-size:.58rem !important;
+    line-height:1 !important;
+    font-weight:800 !important;
+    white-space:nowrap !important;
+    overflow:hidden !important;
+    text-overflow:clip !important;
+    border-radius:10px !important;
+    transform:none !important;
+  }
+  #startBtn{
+    background:linear-gradient(180deg,#ffd95e 0%,#efbd35 48%,#d99a13 100%) !important;
+    border:1px solid #ffe58a !important;
+    color:#171006 !important;
+    box-shadow:0 7px 16px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.45) !important;
+  }
+  #playGameBtn{
+    background:linear-gradient(180deg,#31dcff 0%,#17b9db 48%,#087ea9 100%) !important;
+    border:1px solid #79edff !important;
+    color:#02141b !important;
+    box-shadow:0 7px 16px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.35) !important;
+  }
+  #startBtn:hover:not(:disabled){
+    transform:none !important;
+    filter:brightness(1.07) saturate(1.03) !important;
+    border-color:#fff1af !important;
+    box-shadow:0 7px 16px rgba(0,0,0,.26),0 0 16px rgba(255,211,76,.28),inset 0 1px 0 rgba(255,255,255,.48) !important;
+  }
+  #playGameBtn:hover:not(:disabled){
+    transform:none !important;
+    filter:brightness(1.07) saturate(1.04) !important;
+    border-color:#b7f7ff !important;
+    box-shadow:0 7px 16px rgba(0,0,0,.26),0 0 16px rgba(49,220,255,.27),inset 0 1px 0 rgba(255,255,255,.40) !important;
+  }
+  #startRoundBtn{grid-area:start !important;}
+  #nextRoundBtn{grid-area:next !important;}
+  #startRoundBtn,#nextRoundBtn{
+    width:100% !important;
+    height:38px !important;
+    min-height:38px !important;
+    padding:0 10px !important;
+    font-size:.64rem !important;
+    transform:none !important;
+  }
+  #startRoundBtn:hover:not(:disabled),#nextRoundBtn:hover:not(:disabled){
+    transform:none !important;
+  }
+
+  /* Fully filled retro gradient SKYLINE lettering. */
+  .header-banner .retro-skyline-word{
+    display:inline-block !important;
+    width:max-content !important;
+    color:#7c63ff !important; /* fallback if text clipping is unavailable */
+    background-image:linear-gradient(180deg,#ff39de 0%,#bf42ff 30%,#7d54ff 52%,#426cff 70%,#20cfff 88%,#dffaff 100%) !important;
+    background-color:transparent !important;
+    background-repeat:no-repeat !important;
+    -webkit-background-clip:text !important;
+    background-clip:text !important;
+    -webkit-text-fill-color:transparent !important;
+    -webkit-text-stroke:.75px rgba(245,213,255,.88) !important;
+    text-shadow:0 2px 0 #020310,0 0 8px rgba(155,63,255,.46),0 0 14px rgba(35,182,255,.18) !important;
+  }
+}
+</style>
+
+
+<style id="player-bet-modal-css">
+/* Manual Play mode: compact stable cards + click/tab bet entry. */
+.seat-guess-wrap{display:none !important;}
+.seat{width:92px !important;min-height:72px !important;}
+.seat-inner{
+  min-height:72px !important;
+  height:72px !important;
+  padding:6px 7px !important;
+  display:grid !important;
+  grid-template-columns:34px 1fr !important;
+  grid-template-rows:auto auto auto !important;
+  grid-template-areas:"avatar name" "avatar chips" "avatar wins" !important;
+  column-gap:6px !important;
+  align-content:center !important;
+}
+.avatar{grid-area:avatar !important;width:32px !important;height:32px !important;font-size:17px !important;margin:0 !important;align-self:center !important;}
+.name{grid-area:name !important;font-size:.62rem !important;line-height:1.05 !important;text-align:left !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.chips{grid-area:chips !important;font-size:.54rem !important;text-align:left !important;margin:1px 0 0 !important;}
+.wins{grid-area:wins !important;font-size:.48rem !important;text-align:left !important;margin:1px 0 0 !important;}
+.bet-action{
+  display:none;
+  position:absolute;
+  left:50%;
+  bottom:-23px;
+  transform:translateX(-50%);
+  min-width:72px;
+  height:20px;
+  padding:0 7px;
+  border-radius:7px;
+  border:1px solid rgba(72,224,255,.58);
+  background:linear-gradient(180deg,#22cce8,#087aa7);
+  color:#03141c;
+  font-size:.46rem;
+  font-weight:900;
+  white-space:nowrap;
+  box-shadow:0 4px 12px rgba(0,0,0,.28);
+}
+.bet-status{
+  display:none;
+  position:absolute;
+  left:50%;
+  bottom:-20px;
+  transform:translateX(-50%);
+  min-width:74px;
+  text-align:center;
+  font-size:.46rem;
+  font-weight:800;
+  color:#9cefff;
+  white-space:nowrap;
+}
+.table-wrap.human-play .seat.eligible{cursor:pointer;}
+.table-wrap.human-play .seat.eligible .seat-inner{border-color:rgba(76,220,255,.62)!important;}
+.table-wrap.human-play .seat.eligible:not(.bet-confirmed) .bet-action{display:block;}
+.table-wrap.human-play .seat.bet-confirmed .bet-status{display:block;color:#8ff2b3;}
+.table-wrap.human-play .seat.tie-reenter .bet-status{display:none;}
+.table-wrap.human-play .seat.tie-reenter .bet-action{display:block;background:linear-gradient(180deg,#ffd96a,#d59a18);border-color:#ffe59a;color:#211604;}
+.table-wrap.human-play .seat.eligible:focus-visible .seat-inner,
+.table-wrap.human-play .seat.eligible:focus-within .seat-inner{
+  outline:2px solid #64e9ff;
+  outline-offset:2px;
+  box-shadow:0 0 0 3px rgba(72,224,255,.12),0 12px 28px rgba(0,0,0,.32)!important;
+}
+.table-wrap.many-players .seat{width:82px !important;}
+.table-wrap.many-players .seat-inner{grid-template-columns:29px 1fr !important;height:64px !important;min-height:64px !important;padding:5px 6px !important;}
+.table-wrap.many-players .avatar{width:28px !important;height:28px !important;font-size:14px !important;}
+.table-wrap.crowded-players .seat{width:72px !important;}
+.table-wrap.crowded-players .seat-inner{grid-template-columns:24px 1fr !important;height:58px !important;min-height:58px !important;padding:4px 5px !important;column-gap:4px !important;}
+.table-wrap.crowded-players .avatar{width:23px !important;height:23px !important;font-size:12px !important;}
+.table-wrap.crowded-players .name{font-size:.52rem !important;}.table-wrap.crowded-players .chips{font-size:.46rem !important;}.table-wrap.crowded-players .wins{font-size:.42rem !important;}
+.table-wrap.crowded-players .bet-action,.table-wrap.crowded-players .bet-status{font-size:.40rem;min-width:62px;height:18px;bottom:-19px;}
+
+.player-bet-overlay{
+  position:fixed;inset:0;z-index:10020;display:none;align-items:center;justify-content:center;
+  background:rgba(2,6,18,.82);backdrop-filter:blur(7px);padding:20px;
+}
+.player-bet-overlay.show{display:flex;}
+.player-bet-dialog{
+  width:min(390px,92vw);border-radius:20px;padding:22px;
+  background:linear-gradient(180deg,#0b1730,#071126);
+  border:1px solid rgba(81,218,255,.48);
+  box-shadow:0 28px 80px rgba(0,0,0,.55),0 0 35px rgba(47,195,255,.10);
+}
+.player-bet-head{display:flex;align-items:center;gap:12px;margin-bottom:15px;}
+.player-bet-avatar{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font-size:25px;background:linear-gradient(145deg,#7288ff,#314081);border:2px solid rgba(255,255,255,.72);}
+.player-bet-dialog h3{margin:0;font-size:1rem;}.player-bet-sub{margin:3px 0 0;color:#aeb9d7;font-size:.72rem;}
+.player-bet-dialog label{display:block;color:#dce7ff;font-size:.72rem;margin-bottom:7px;}
+#playerBetInput{width:100%;height:46px;border-radius:11px;border:1px solid rgba(255,255,255,.18);background:#0b1429;color:#fff;padding:0 13px;font-size:1rem;font-weight:800;outline:none;}
+#playerBetInput:focus{border-color:#55dfff;box-shadow:0 0 0 3px rgba(62,210,255,.12);}
+.player-bet-range{margin:7px 0 0;color:#91a2c9;font-size:.65rem;}
+.player-bet-error{display:none;margin-top:8px;color:#ff9ba8;font-size:.66rem;}
+.player-bet-actions{display:flex;gap:9px;justify-content:flex-end;margin-top:17px;}
+.player-bet-actions button{height:38px;min-width:96px;padding:0 14px;border-radius:10px;transform:none!important;}
+#playerBetConfirm{background:linear-gradient(180deg,#2ad5ee,#087ba7);border-color:#6beaff;color:#03141c;}
+#playerBetCancel{background:#111a31;color:#eef3ff;}
+#submitGuessesBtn{display:none !important;}
+.table-wrap.human-play #submitGuessesBtn{display:block !important;}
+.table-wrap.human-play #submitGuessesBtn:disabled{opacity:.42 !important;filter:saturate(.45);}
+</style>
+
+
+<style id="v13-header-button-hitbox-fix">
+/* V13 — final header interaction layer.
+   Keeps decorative banner art from sitting above the controls and gives
+   every visible pixel of each header button one consistent hover target. */
+.hero-pane{position:relative !important;isolation:isolate !important;}
+.header-banner,
+.retro-brand-art,
+.retro-brand-art::before,
+.city-silhouette,
+.city-silhouette *,
+.shooting-star,
+.retro-skyline-word,
+.retro-community{
+  pointer-events:none !important;
+}
+.controls{
+  z-index:50 !important;
+  overflow:visible !important;
+  pointer-events:auto !important;
+}
+.mode-toggle-row{
+  z-index:51 !important;
+  pointer-events:auto !important;
+}
+#resetBtn,#startBtn,#playGameBtn,#startRoundBtn,#nextRoundBtn{
+  position:relative !important;
+  z-index:52 !important;
+  pointer-events:auto !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+  overflow:hidden !important;
+  transform:none !important;
+  margin:0 !important;
+  box-sizing:border-box !important;
+  transition:background .16s ease,border-color .16s ease,box-shadow .16s ease,filter .16s ease,color .16s ease !important;
+}
+#resetBtn::before,#resetBtn::after,
+#startBtn::before,#startBtn::after,
+#playGameBtn::before,#playGameBtn::after,
+#startRoundBtn::before,#startRoundBtn::after,
+#nextRoundBtn::before,#nextRoundBtn::after{
+  pointer-events:none !important;
+}
+
+/* Main mode buttons: identical hit-boxes and stable hover states. */
+#startBtn,#playGameBtn{
+  height:42px !important;
+  min-height:42px !important;
+  width:100% !important;
+  min-width:0 !important;
+  padding:0 10px !important;
+  border-radius:10px !important;
+  font-size:.60rem !important;
+  line-height:1.1 !important;
+  font-weight:850 !important;
+  white-space:nowrap !important;
+}
+#startBtn{
+  background:linear-gradient(180deg,#ffdc68 0%,#efbe39 52%,#d79813 100%) !important;
+  border:1px solid #ffe99b !important;
+  color:#171006 !important;
+  box-shadow:0 7px 16px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.42) !important;
+}
+#playGameBtn{
+  background:linear-gradient(180deg,#39ddff 0%,#16b9da 52%,#087ca7 100%) !important;
+  border:1px solid #80efff !important;
+  color:#02151c !important;
+  box-shadow:0 7px 16px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.34) !important;
+}
+#startBtn:hover:not(:disabled){
+  background:linear-gradient(180deg,#ffe684 0%,#f7ca4b 52%,#e3a21d 100%) !important;
+  border-color:#fff4ba !important;
+  filter:brightness(1.04) saturate(1.04) !important;
+  box-shadow:0 7px 16px rgba(0,0,0,.26),0 0 18px rgba(255,210,67,.34),inset 0 1px 0 rgba(255,255,255,.52) !important;
+}
+#playGameBtn:hover:not(:disabled){
+  background:linear-gradient(180deg,#61e6ff 0%,#22c8e7 52%,#0b8eb9 100%) !important;
+  border-color:#c2f8ff !important;
+  filter:brightness(1.04) saturate(1.05) !important;
+  box-shadow:0 7px 16px rgba(0,0,0,.26),0 0 18px rgba(49,220,255,.34),inset 0 1px 0 rgba(255,255,255,.44) !important;
+}
+#resetBtn:hover:not(:disabled),#startRoundBtn:hover:not(:disabled),#nextRoundBtn:hover:not(:disabled){
+  transform:none !important;
+  filter:brightness(1.10) !important;
+  border-color:rgba(173,211,255,.62) !important;
+  box-shadow:0 7px 16px rgba(0,0,0,.24),0 0 14px rgba(104,160,255,.18) !important;
+}
+#startBtn:active:not(:disabled),#playGameBtn:active:not(:disabled),
+#resetBtn:active:not(:disabled),#startRoundBtn:active:not(:disabled),#nextRoundBtn:active:not(:disabled){
+  transform:none !important;
+  filter:brightness(.96) !important;
+}
+
+/* Desktop banner placement. */
+@media (min-width:1121px){
+  .controls{
+    position:absolute !important;
+    right:14px !important;
+    bottom:14px !important;
+    width:53% !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+    grid-template-rows:34px 42px 38px !important;
+    grid-template-areas:"reset reset" "modes modes" "start next" !important;
+    gap:9px 10px !important;
+    padding:0 !important;
+  }
+  .mode-toggle-row{
+    grid-area:modes !important;
+    position:relative !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+    gap:10px !important;
+    width:100% !important;
+    height:42px !important;
+  }
+  #resetBtn{grid-area:reset !important;justify-self:end !important;width:72px !important;min-width:72px !important;height:34px !important;min-height:34px !important;}
+  #startRoundBtn{grid-area:start !important;width:100% !important;height:38px !important;min-height:38px !important;}
+  #nextRoundBtn{grid-area:next !important;width:100% !important;height:38px !important;min-height:38px !important;}
+}
+
+/* At narrower widths the controls become their own clean rows rather than
+   inheriting old display:contents / absolute-position rules. */
+@media (max-width:1120px){
+  .controls{
+    position:relative !important;
+    inset:auto !important;
+    width:100% !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+    grid-template-areas:"reset reset" "modes modes" "start next" !important;
+    gap:8px 8px !important;
+    padding:0 !important;
+  }
+  .mode-toggle-row{
+    grid-area:modes !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+    gap:8px !important;
+    width:100% !important;
+    height:40px !important;
+    position:relative !important;
+  }
+  #resetBtn{grid-area:reset !important;width:100% !important;height:34px !important;min-height:34px !important;justify-self:stretch !important;}
+  #startBtn,#playGameBtn{height:40px !important;min-height:40px !important;font-size:.58rem !important;}
+  #startRoundBtn{grid-area:start !important;width:100% !important;height:36px !important;min-height:36px !important;}
+  #nextRoundBtn{grid-area:next !important;width:100% !important;height:36px !important;min-height:36px !important;}
+}
+
+@media (max-width:560px){
+  .controls{grid-template-columns:1fr !important;grid-template-areas:"reset" "modes" "start" "next" !important;}
+  .mode-toggle-row{grid-template-columns:1fr 1fr !important;}
+  #startRoundBtn,#nextRoundBtn{width:100% !important;}
+}
+
+
+/* v14: move round controls into the player-table card */
+.table-wrap{position:relative !important;}
+.table-round-controls{
+  position:absolute;
+  top:12px;
+  left:12px;
+  z-index:80;
+  display:flex;
+  gap:8px;
+  align-items:center;
+  pointer-events:auto;
+}
+.table-round-controls button{
+  min-width:118px;
+  height:38px;
+  padding:0 14px;
+  border-radius:10px;
+  position:relative;
+  z-index:81;
+}
+@media (max-width:760px){
+  .table-round-controls{top:8px;left:8px;gap:6px;}
+  .table-round-controls button{min-width:98px;height:34px;padding:0 10px;font-size:.68rem;}
+}
+</style>
+
+
+<style id="v15-mode-buttons-adjacent">
+/* v15: keep Automated Demo directly beside Play the Game at every width */
+.mode-toggle-row{display:grid !important;grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;gap:10px !important;width:100% !important;position:relative !important;}
+#startBtn,#playGameBtn{width:100% !important;min-width:0 !important;margin:0 !important;}
+@media (max-width:560px){.mode-toggle-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;gap:6px !important;}#startBtn,#playGameBtn{font-size:.50rem !important;padding:0 5px !important;white-space:nowrap !important;}}
+</style>
+
+<style id="v16-desktop-banner-mode-buttons">
+/* v16: on expanded desktop layouts keep the two game-mode buttons together inside the banner.
+   Start Round / Next Round are relocated to the table card by the existing v14 script,
+   so the banner control block only reserves rows for Reset + the two mode buttons. */
+@media (min-width:1121px){
+  .hero-pane .controls{
+    position:absolute !important;
+    right:14px !important;
+    bottom:14px !important;
+    width:53% !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+    grid-template-rows:34px 42px !important;
+    grid-template-areas:"reset reset" "modes modes" !important;
+    gap:9px 10px !important;
+    padding:0 !important;
+    align-content:end !important;
+  }
+  .hero-pane .mode-toggle-row{
+    grid-area:modes !important;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) minmax(0,1fr) !important;
+    gap:10px !important;
+    width:100% !important;
+    height:42px !important;
+    position:relative !important;
+  }
+  .hero-pane #startBtn,
+  .hero-pane #playGameBtn{
+    width:100% !important;
+    min-width:0 !important;
+    height:42px !important;
+    min-height:42px !important;
+    margin:0 !important;
+  }
+  .hero-pane #resetBtn{
+    grid-area:reset !important;
+    justify-self:end !important;
+  }
+}
+</style>
+</head>
+<body>
+<div class="sky" id="sky"></div>
+<div id="tieWarningOverlay" class="tie-warning-overlay" aria-hidden="true">
+  <div class="tie-warning-card" role="alertdialog" aria-modal="true" aria-labelledby="tieWarningTitle">
+    <div class="tie-warning-icon">⚠️</div>
+    <h3 id="tieWarningTitle">Duplicate Guess</h3>
+    <p>Two or more players guessed the same amount. Guess again. Make sure your next guess is lower than your previous amount.</p>
+    <button id="tieWarningClose" class="primary" type="button">Guess Again</button>
+  </div>
+</div>
+
+
+<div class="player-bet-overlay" id="playerBetOverlay" aria-hidden="true">
+  <div class="player-bet-dialog" role="dialog" aria-modal="true" aria-labelledby="playerBetTitle">
+    <div class="player-bet-head">
+      <div class="player-bet-avatar" id="playerBetAvatar">🎮</div>
+      <div><h3 id="playerBetTitle">Enter player bet</h3><p class="player-bet-sub" id="playerBetSub">Round bet</p></div>
+    </div>
+    <label for="playerBetInput">Bet amount (€)</label>
+    <input id="playerBetInput" type="number" inputmode="numeric" step="1" autocomplete="off">
+    <div class="player-bet-range" id="playerBetRange"></div>
+    <div class="player-bet-error" id="playerBetError"></div>
+    <div class="player-bet-actions">
+      <button id="playerBetCancel" type="button">Cancel</button>
+      <button id="playerBetConfirm" type="button">Confirm Bet</button>
+    </div>
+  </div>
+</div>
+
+<main class="app">
+  <header class="topbar">
+    <div class="hero-pane">
+    <div class="header-banner">
+      <div class="retro-brand-art" aria-label="Skyline Community Edition banner">
+        <div class="shooting-star" aria-hidden="true"></div>
+        <div class="retro-skyline-word" role="img" aria-label="SKYLINE">
+          <svg class="retro-skyline-svg" viewBox="0 0 360 66" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="skylineLetterFill" x1="0" y1="0" x2="0" y2="100%">
+                <stop offset="0%" stop-color="#f23bd4"></stop>
+                <stop offset="24%" stop-color="#b931df"></stop>
+                <stop offset="52%" stop-color="#6128ae"></stop>
+                <stop offset="74%" stop-color="#365bd5"></stop>
+                <stop offset="90%" stop-color="#20cbed"></stop>
+                <stop offset="100%" stop-color="#b8f9ff"></stop>
+              </linearGradient>
+            </defs>
+            <g transform="skewX(-10)">
+              <text class="skyline-logo-outline" x="20" y="53" textLength="326" lengthAdjust="spacingAndGlyphs">SKYLINE</text>
+              <text class="skyline-logo-fill" x="20" y="53" textLength="326" lengthAdjust="spacingAndGlyphs">SKYLINE</text>
+            </g>
+          </svg>
+        </div>
+        <div class="retro-community"><span></span> COMMUNITY EDITION <span></span></div>
+        <div class="city-silhouette" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+      </div>
+    </div>
+    <div class="brand">
+      <p>Skyline Community Edition supports up to 22 players. Choose a starting month; each new round advances one calendar month. The lowest unique guess wins while results track guesses, pots, winnings, losses, and net totals.</p>
+    </div>
+    <div class="controls">
+      <button id="resetBtn" type="button">Reset</button>
+      <div class="mode-toggle-row" aria-label="Game mode">
+        <button id="startBtn" class="primary" type="button">▶ Start Automated Demo</button>
+        <button id="playGameBtn" class="secondary" type="button">🎮 Play the Game</button>
+      </div>
+<button id="startRoundBtn" class="secondary" type="button">▶ Start Round</button>
+<button id="nextRoundBtn" class="secondary" type="button" disabled>⏭ Next Round</button>
+    </div>
+    </div>
+    <div class="game-settings">
+      <label>Number of players
+        <div class="player-count-control">
+          <button id="playerMinusBtn" type="button" class="count-btn">−</button>
+          <input id="playerCountInput" type="number" min="2" max="22" step="1" value="10" readonly>
+          <button id="playerPlusBtn" type="button" class="count-btn">+</button>
+        </div>
+      </label>
+      <label>Demo names
+        <button id="randomNamesBtn" type="button" class="secondary random-names-btn">🎲 Randomize Names</button>
+      </label>
+      <label>Minimum guess (€)
+        <input id="minGuessInput" type="number" min="1" step="1" value="800">
+      </label>
+      <label>Maximum guess (€)
+        <input id="maxGuessInput" type="number" min="2" step="1" value="1000">
+      </label>
+      <label>Starting month
+        <input id="startMonthInput" type="month" value="">
+      </label>
+      <div class="settings-note">Set the betting range and starting month before starting the game.</div>
+      <div class="settings-error" id="settingsError">Maximum guess must be greater than minimum guess.</div>
+    </div>
+  </header>
+
+  <section class="hud">
+    <div class="hud-card">
+      <div>
+        <div class="label">Current month / round</div>
+        <div class="value" id="roundDisplay">Waiting</div>
+      </div>
+    </div>
+    <div class="hud-card center">
+      <div>
+        <div class="label">Pot</div>
+        <div class="value" id="potHud">€0</div>
+      </div>
+    </div>
+    <div class="hud-card">
+      <div>
+        <div class="label">Progress</div>
+        <div class="value" id="progressDisplay">0 / 10 winners</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="table-wrap" id="tableWrap">
+    <div class="message" id="message">Ready.</div>
+    <div class="table"></div>
+
+    <div class="pot" id="pot">
+      <div class="pot-stack" id="potStack"></div>
+      <div class="pot-value">€<span id="potValue">0</span></div>
+    </div>
+    <button id="submitGuessesBtn" class="primary" type="button">✓ Submit Round</button>
+  </section>
+
+  <div class="legend">
+    <span><i class="dot gold"></i>Animated bets move into the center pot</span>
+    <span><i class="dot green"></i>Winner stays highlighted and collects the round</span>
+  </div>
+
+  <div style="margin-top:12px;padding:12px 14px;border:1px solid rgba(255,255,255,.08);border-radius:14px;background:rgba(14,21,43,.65);color:var(--muted);font-size:.84rem;line-height:1.5">
+    <b style="color:var(--text)">Bot strategy:</b>
+    players are trying to maximize expected profit. Within the selected betting range, a lower guess is more likely to win while a higher guess creates a larger pot, so players try to undercut one another without sacrificing too much value. Bots therefore compete around a moving middle zone and sometimes undercut one another by a small amount.
+  </div>
+
+  <section class="stats-strip">
+    <div class="mini-stat"><div class="label">Minimum guess</div><div class="big" id="minGuessStat">€800</div></div>
+    <div class="mini-stat"><div class="label">Maximum guess</div><div class="big" id="maxGuessStat">€1000</div></div>
+    <div class="mini-stat"><div class="label">Rule</div><div class="big">Lowest unique wins</div></div>
+  </section>
+  <section class="data-section">
+    <div class="chart-card">
+      <h3>Player guesses by month</h3>
+      <p>One colored line per player, using the same Skyline demo palette. Winning players stop guessing after their winning month.</p>
+      <canvas id="outcomeChart" class="chart-canvas"></canvas>
+      <div id="chartTooltip" class="chart-tooltip"></div>
+      <div id="chartLegend" class="chart-legend"></div>
+    </div>
+    <div class="chart-card">
+      <h3>Round winners</h3>
+      <p>Each month contains one round. The result records the winner, winning guess, and total pot.</p>
+      <div class="outcome-table-wrap">
+        <table class="outcome-table">
+          <thead><tr><th>Month / Round</th><th>Winner</th><th>Guess</th><th>Pot won</th></tr></thead>
+          <tbody id="outcomeRows"><tr><td colspan="4" class="empty-outcome">Start the demo to populate results.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="totals-card">
+    <div class="totals-head">
+      <div>
+        <h3>Grand total — player winnings & losses</h3>
+        <p>Cumulative money received from pots versus cumulative payments made across all completed months.</p>
+      </div>
+      <div class="grand-net">Combined net: <strong id="combinedNet">€0</strong></div>
+    </div>
+    <div class="outcome-table-wrap totals-wrap">
+      <table class="outcome-table totals-table">
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>Rounds won</th>
+            <th>Total winnings</th>
+            <th>Total losses</th>
+            <th>Net result</th>
+          </tr>
+        </thead>
+        <tbody id="totalsRows"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<div id="celebrationOverlay" class="celebration-overlay" aria-hidden="true">
+  <div class="celebration-stars" id="celebrationStars"></div>
+  <div class="celebration-card">
+    <div class="celebration-icon">🌟</div>
+    <h2>Congratulations!</h2>
+    <div id="celebrationMessage" class="celebration-message">10 players · 10 winners!</div>
+    <button id="celebrationCloseBtn" type="button" class="primary">Celebrate Again Later ✨</button>
+  </div>
+</div>
+
+<script>
+const playerPool = [
+  { name:"Tracy", icon:"🌙" },
+  { name:"James", icon:"🦊" },
+  { name:"Jessy", icon:"🐼" },
+  { name:"Alice", icon:"✨" },
+  { name:"Rin", icon:"🦅" },
+  { name:"Gary", icon:"🐺" },
+  { name:"Maya", icon:"🌸" },
+  { name:"Sora", icon:"🐉" },
+  { name:"Kyle", icon:"⚡" },
+  { name:"Ariel", icon:"🦋" },
+  { name:"Liam", icon:"🐯" },
+  { name:"Emma", icon:"🌻" },
+  { name:"Noah", icon:"🦉" },
+  { name:"Olivia", icon:"🌺" },
+  { name:"Ethan", icon:"🐻" },
+  { name:"Zoe", icon:"⭐" },
+  { name:"Lucas", icon:"🦁" },
+  { name:"Nina", icon:"🌈" },
+  { name:"Leo", icon:"🐱" },
+  { name:"Sasha", icon:"🪐" },
+  { name:"Milo", icon:"🐸" },
+  { name:"Eva", icon:"💫" }
+];
+let selectedPlayerCount=10;
+let currentPlayerPool=[...playerPool];
+let players=currentPlayerPool.slice(0,selectedPlayerCount);
+
+const DEMO_DEFAULT_AMOUNT = 1000;
+let DEMO_MIN_GUESS = 800;
+let DEMO_MAX_GUESS = 1000;
+
+function makePositions(count){
+  const positions=[];
+  const radiusX = count > 16 ? 43 : count > 10 ? 41 : 39;
+  const radiusY = count > 16 ? 45 : 43;
+  for(let i=0;i<count;i++){
+    const angle=-Math.PI/2+(Math.PI*2*i/count);
+    positions.push({
+      x:50+radiusX*Math.cos(angle),
+      y:50+radiusY*Math.sin(angle)
+    });
+  }
+  return positions;
+}
+let positions=makePositions(selectedPlayerCount);
+
+const tableWrap = document.getElementById("tableWrap");
+const startBtn = document.getElementById("startBtn");
+const playGameBtn = document.getElementById("playGameBtn");
+const submitGuessesBtn = document.getElementById("submitGuessesBtn");
+const tieWarningOverlay = document.getElementById("tieWarningOverlay");
+const tieWarningClose = document.getElementById("tieWarningClose");
+const playerBetOverlay = document.getElementById("playerBetOverlay");
+const playerBetAvatar = document.getElementById("playerBetAvatar");
+const playerBetTitle = document.getElementById("playerBetTitle");
+const playerBetSub = document.getElementById("playerBetSub");
+const playerBetInput = document.getElementById("playerBetInput");
+const playerBetRange = document.getElementById("playerBetRange");
+const playerBetError = document.getElementById("playerBetError");
+const playerBetConfirm = document.getElementById("playerBetConfirm");
+const playerBetCancel = document.getElementById("playerBetCancel");
+const resetBtn = document.getElementById("resetBtn");
+const startRoundBtn = document.getElementById("startRoundBtn");
+const nextRoundBtn = document.getElementById("nextRoundBtn");
+const message = document.getElementById("message");
+const potValue = document.getElementById("potValue");
+const potHud = document.getElementById("potHud");
+const roundDisplay = document.getElementById("roundDisplay");
+const progressDisplay = document.getElementById("progressDisplay");
+const potStack = document.getElementById("potStack");
+const outcomeCanvas=document.getElementById("outcomeChart");
+const outcomeRows=document.getElementById("outcomeRows");
+const totalsRows=document.getElementById("totalsRows");
+const combinedNet=document.getElementById("combinedNet");
+const chartLegend=document.getElementById("chartLegend");
+const minGuessInput=document.getElementById("minGuessInput");
+const maxGuessInput=document.getElementById("maxGuessInput");
+const minGuessStat=document.getElementById("minGuessStat");
+const maxGuessStat=document.getElementById("maxGuessStat");
+const settingsError=document.getElementById("settingsError");
+const chartTooltip=document.getElementById("chartTooltip");
+const startMonthInput=document.getElementById("startMonthInput");
+const playerCountInput=document.getElementById("playerCountInput");
+const playerMinusBtn=document.getElementById("playerMinusBtn");
+const playerPlusBtn=document.getElementById("playerPlusBtn");
+const randomNamesBtn=document.getElementById("randomNamesBtn");
+const celebrationOverlay=document.getElementById("celebrationOverlay");
+const celebrationMessage=document.getElementById("celebrationMessage");
+const celebrationStars=document.getElementById("celebrationStars");
+const celebrationCloseBtn=document.getElementById("celebrationCloseBtn");
+let winningHitPoints=[];
+let selectedStartMonth=getCurrentMonthValue();
+let outcomes=[];
+
+let seats = [];
+let state = [];
+
+let manualMode = false;
+let humanPlayMode = false;
+let roundInProgress = false;
+let manualInitialized = false;
+let humanPendingGuesses = new Map();
+let humanTiePlayers = new Set();
+let humanTieLimits = new Map();
+let activeBetPlayerIndex = null;
+let currentRound = 0;
+let running = false;
+let stopToken = 0;
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function createSky(){
+  const sky = document.getElementById("sky");
+  for(let i=0;i<55;i++){
+    const s=document.createElement("span");
+    s.className="star";
+    s.style.left=Math.random()*100+"%";
+    s.style.top=Math.random()*100+"%";
+    s.style.animationDelay=(Math.random()*3)+"s";
+    s.style.opacity=.25+Math.random()*.75;
+    sky.appendChild(s);
+  }
+}
+
+function createSeats(){
+  tableWrap.classList.toggle("many-players", players.length > 10);
+  tableWrap.classList.toggle("crowded-players", players.length > 16);
+  players.forEach((p,i)=>{
+    const seat=document.createElement("div");
+    seat.className="seat";
+    seat.dataset.playerIndex=String(i);
+    seat.tabIndex=-1;
+    seat.setAttribute("role","button");
+    seat.setAttribute("aria-label",`Enter bet for ${p.name}`);
+    seat.style.left=positions[i].x+"%";
+    seat.style.top=positions[i].y+"%";
+    seat.innerHTML=`
+      <div class="seat-inner">
+        <div class="avatar">${p.icon}</div>
+        <div class="name">${p.name}</div>
+        <div class="chips">€<span class="chip-count">1000</span></div>
+        <div class="wins"><span class="win-count">0</span> wins</div>
+        <button class="bet-action" type="button" tabindex="-1">Enter Bet</button>
+        <div class="bet-status">Bet confirmed</div>
+        <div class="seat-guess-wrap">
+          <span class="seat-guess-label">Your guess (€)</span>
+          <input class="seat-guess" type="number" inputmode="numeric" step="1" aria-label="Guess for ${p.name}" placeholder="Guess">
+        </div>
+      </div>`;
+    tableWrap.appendChild(seat);
+    seats.push(seat);
+  });
+}
+
+
+
+
+function getCurrentMonthValue(){
+  const now=new Date();
+  return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}`;
+}
+function applyCalendarMinimum(){
+  const currentMonth=getCurrentMonthValue();
+  startMonthInput.min=currentMonth;
+  if(!startMonthInput.value || startMonthInput.value<currentMonth){
+    startMonthInput.value=currentMonth;
+  }
+}
+
+function monthInfoForRound(roundNumber){
+  const [yearStr,monthStr]=selectedStartMonth.split("-");
+  const baseYear=Number(yearStr), baseMonth=Number(monthStr)-1;
+  const d=new Date(baseYear,baseMonth+(roundNumber-1),1);
+  return {
+    year:d.getFullYear(),
+    monthIndex:d.getMonth(),
+    long:d.toLocaleString("en-US",{month:"long",year:"numeric"}),
+    short:d.toLocaleString("en-US",{month:"short",year:"numeric"})
+  };
+}
+
+function validateAndApplySettings(){
+  const minVal=Math.round(Number(minGuessInput.value));
+  const maxVal=Math.round(Number(maxGuessInput.value));
+  const monthVal=startMonthInput.value;
+  const validMonth=/^\d{4}-\d{2}$/.test(monthVal);
+  const notPast=validMonth && monthVal>=getCurrentMonthValue();
+  const valid=Number.isFinite(minVal) && Number.isFinite(maxVal) && minVal>=1 && maxVal>minVal && validMonth && notPast;
+  if(!validMonth){
+    settingsError.textContent="Please select a valid starting month.";
+  }else if(!notPast){
+    settingsError.textContent="You can’t start the game in a past month.";
+  }else{
+    settingsError.textContent="Maximum guess must be greater than minimum guess.";
+  }
+  settingsError.style.display=valid?"none":"block";
+  if(!valid)return false;
+  DEMO_MIN_GUESS=minVal;
+  DEMO_MAX_GUESS=maxVal;
+  selectedStartMonth=monthVal;
+  selectedPlayerCount=Math.max(2,Math.min(playerPool.length,Number(playerCountInput.value)||10));
+  players=currentPlayerPool.slice(0,selectedPlayerCount);
+  positions=makePositions(selectedPlayerCount);
+  minGuessStat.textContent="€"+DEMO_MIN_GUESS;
+  maxGuessStat.textContent="€"+DEMO_MAX_GUESS;
+  return true;
+}
+function setSettingsLocked(locked){
+  minGuessInput.disabled=locked;
+  maxGuessInput.disabled=locked;
+  startMonthInput.disabled=locked;
+  playerMinusBtn.disabled=locked || selectedPlayerCount<=2;
+  playerPlusBtn.disabled=locked || selectedPlayerCount>=playerPool.length;
+  randomNamesBtn.disabled=locked;
+}
+minGuessInput.addEventListener("input",()=>{
+  if(!running && !roundInProgress) validateAndApplySettings();
+});
+maxGuessInput.addEventListener("input",()=>{
+  if(!running && !roundInProgress) validateAndApplySettings();
+});
+startMonthInput.addEventListener("input",()=>{
+  if(!running && !roundInProgress) validateAndApplySettings();
+});
+
+
+
+function shuffleArray(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+function randomizeNames(){
+  if(running || roundInProgress)return;
+  currentPlayerPool=shuffleArray(playerPool);
+  players=currentPlayerPool.slice(0,selectedPlayerCount);
+  resetState();
+  showMessage("Demo player names randomized.");
+}
+randomNamesBtn.addEventListener("click",randomizeNames);
+
+function changePlayerCount(delta){
+  if(running || roundInProgress)return;
+  selectedPlayerCount=Math.max(2,Math.min(playerPool.length,selectedPlayerCount+delta));
+  playerCountInput.value=selectedPlayerCount;
+  players=currentPlayerPool.slice(0,selectedPlayerCount);
+  positions=makePositions(selectedPlayerCount);
+  playerMinusBtn.disabled=selectedPlayerCount<=2;
+  playerPlusBtn.disabled=selectedPlayerCount>=playerPool.length;
+  resetState();
+}
+playerMinusBtn.addEventListener("click",()=>changePlayerCount(-1));
+playerPlusBtn.addEventListener("click",()=>changePlayerCount(1));
+
+function resetState(){
+  hideCelebration();
+  stopToken++;
+  running=false;
+  roundInProgress=false;
+  manualMode=false;
+  humanPlayMode=false;
+  manualInitialized=false;
+  humanPendingGuesses.clear();
+  humanTiePlayers.clear();
+  humanTieLimits.clear();
+  if(tieWarningOverlay){ tieWarningOverlay.classList.remove("show"); tieWarningOverlay.setAttribute("aria-hidden","true"); }
+  if(playerBetOverlay){ playerBetOverlay.classList.remove("show"); playerBetOverlay.setAttribute("aria-hidden","true"); }
+  activeBetPlayerIndex=null;
+  currentRound=0;
+  startBtn.disabled=false;
+  playGameBtn.disabled=false;
+  startBtn.classList.remove("active-mode");
+  playGameBtn.classList.remove("active-mode");
+  tableWrap.classList.remove("human-play");
+  if(submitGuessesBtn){ submitGuessesBtn.style.display=""; submitGuessesBtn.disabled=false; }
+  startRoundBtn.disabled=false;
+  setSettingsLocked(false);
+  nextRoundBtn.disabled=true;
+  document.querySelectorAll(".bet-chip").forEach(el=>el.remove());
+  state=players.map(p=>({...p,chips:DEMO_DEFAULT_AMOUNT,balance:0,wins:0,guesses:[],totalWinnings:0,totalLosses:0,active:false}));
+  outcomes=[];
+  tableWrap.querySelectorAll(".seat").forEach(el=>el.remove());
+  seats=[];
+  createSeats();
+  seats.forEach((seat)=>{
+    seat.classList.remove("active","winner");
+    seat.querySelector(".chip-count").textContent=DEMO_DEFAULT_AMOUNT;
+    seat.querySelector(".win-count").textContent=0;
+  });
+  setPot(0);
+  roundDisplay.textContent=`${monthInfoForRound(1).long} · Round 1`;
+  progressDisplay.textContent=`0 / ${players.length} winners`;
+  renderOutcomes();
+  renderTotals();
+  if(chartTooltip) chartTooltip.classList.remove("show");
+  drawOutcomeChart();
+  validateAndApplySettings();
+  showMessage(`Ready — bets range from €${DEMO_MIN_GUESS} to €${DEMO_MAX_GUESS}.`);
+}
+
+function showMessage(text, duration=900){
+  message.textContent=text;
+  message.classList.add("show");
+  clearTimeout(showMessage.timer);
+  showMessage.timer=setTimeout(()=>message.classList.remove("show"),duration);
+}
+
+function setPot(amount){
+  potValue.textContent=amount;
+  potHud.textContent="€"+amount;
+  potStack.innerHTML="";
+  const count=Math.min(8,Math.ceil(amount/30));
+  for(let i=0;i<count;i++){
+    const chip=document.createElement("span");
+    chip.className="pot-chip";
+    chip.style.bottom=(i*6)+"px";
+    chip.style.transform=`translateX(-50%) translateX(${(i%2?5:-5)}px)`;
+    potStack.appendChild(chip);
+  }
+}
+
+function updateSeat(i){
+  const seat=seats[i];
+  seat.querySelector(".chip-count").textContent=DEMO_DEFAULT_AMOUNT+state[i].balance;
+  seat.querySelector(".win-count").textContent=state[i].wins;
+}
+
+function prepareHumanGuessInputs(round, tieOnly=false){
+  const monthInfo=monthInfoForRound(round);
+  roundDisplay.textContent=`${monthInfo.long} · Round ${round}`;
+  const eligible=state.map((p,i)=>p.wins===0?i:null).filter(i=>i!==null);
+  const promptPlayers=tieOnly ? [...humanTiePlayers] : eligible;
+
+  seats.forEach((seat,i)=>{
+    const isEligible=promptPlayers.includes(i);
+    seat.classList.toggle("eligible",isEligible);
+    seat.classList.toggle("tie-reenter",tieOnly && isEligible);
+    seat.classList.toggle("bet-confirmed",humanPendingGuesses.has(i) && !humanTiePlayers.has(i));
+    seat.tabIndex=isEligible ? 0 : -1;
+    seat.setAttribute("aria-disabled",isEligible?"false":"true");
+    const action=seat.querySelector(".bet-action");
+    const status=seat.querySelector(".bet-status");
+    if(action){
+      action.textContent=tieOnly && isEligible ? "Guess Again" : (humanPendingGuesses.has(i)?"Change Bet":"Enter Bet");
+    }
+    if(status && humanPendingGuesses.has(i) && !humanTiePlayers.has(i)){
+      status.textContent=`€${humanPendingGuesses.get(i)} ✓`;
+    }
+  });
+  updateHumanSubmitState();
+  showMessage(
+    tieOnly
+      ? "Duplicate bet detected — select the highlighted players and enter a lower amount."
+      : `${monthInfo.long} · select each active player to enter and confirm their bet.`,
+    2200
+  );
+}
+
+function activeHumanPlayers(){
+  return state.map((p,i)=>p.wins===0?i:null).filter(i=>i!==null);
+}
+
+function updateHumanSubmitState(){
+  if(!submitGuessesBtn)return;
+  const active=activeHumanPlayers();
+  const required=humanTiePlayers.size ? [...humanTiePlayers] : active;
+  const complete=required.length>0 && required.every(i=>humanPendingGuesses.has(i));
+  submitGuessesBtn.disabled=!complete;
+  submitGuessesBtn.textContent=humanTiePlayers.size ? "Submit New Guesses" : `✓ Submit Round ${currentRound}`;
+}
+
+function openPlayerBetDialog(index){
+  if(!humanPlayMode || roundInProgress || running)return;
+  const seat=seats[index];
+  if(!seat || !seat.classList.contains("eligible"))return;
+  activeBetPlayerIndex=index;
+  const p=state[index];
+  const tieLimit=humanTieLimits.get(index);
+  const inTie=humanTiePlayers.has(index);
+  playerBetAvatar.textContent=p.icon;
+  playerBetTitle.textContent=`${p.name}'s bet`;
+  playerBetSub.textContent=`${monthInfoForRound(currentRound).long} · Round ${currentRound}`;
+  playerBetInput.value=humanPendingGuesses.has(index)?String(humanPendingGuesses.get(index)):"";
+  if(inTie && Number.isFinite(tieLimit)){
+    playerBetInput.min="0";
+    playerBetInput.max=String(Math.max(0,tieLimit-1));
+    playerBetInput.placeholder=`Lower than ${tieLimit}`;
+    playerBetRange.textContent=`Re-guess required: enter a whole number lower than €${tieLimit}.`;
+  }else{
+    playerBetInput.min=String(DEMO_MIN_GUESS);
+    playerBetInput.max=String(DEMO_MAX_GUESS);
+    playerBetInput.placeholder=`${DEMO_MIN_GUESS}–${DEMO_MAX_GUESS}`;
+    playerBetRange.textContent=`Allowed range: €${DEMO_MIN_GUESS}–€${DEMO_MAX_GUESS}.`;
+  }
+  playerBetError.style.display="none";
+  playerBetOverlay.classList.add("show");
+  playerBetOverlay.setAttribute("aria-hidden","false");
+  requestAnimationFrame(()=>playerBetInput.focus());
+}
+
+function closePlayerBetDialog(){
+  playerBetOverlay.classList.remove("show");
+  playerBetOverlay.setAttribute("aria-hidden","true");
+  const idx=activeBetPlayerIndex;
+  activeBetPlayerIndex=null;
+  if(Number.isInteger(idx) && seats[idx]) seats[idx].focus();
+}
+
+function confirmPlayerBet(){
+  const idx=activeBetPlayerIndex;
+  if(!Number.isInteger(idx))return;
+  const raw=playerBetInput.value.trim();
+  const value=Number(raw);
+  const inTie=humanTiePlayers.has(idx);
+  const tieLimit=humanTieLimits.get(idx);
+  const valid=inTie
+    ? raw!=="" && Number.isInteger(value) && value>=0 && value<tieLimit
+    : raw!=="" && Number.isInteger(value) && value>=DEMO_MIN_GUESS && value<=DEMO_MAX_GUESS;
+  if(!valid){
+    playerBetError.textContent=inTie
+      ? `Enter a whole number lower than €${tieLimit}.`
+      : `Enter a whole number from €${DEMO_MIN_GUESS} to €${DEMO_MAX_GUESS}.`;
+    playerBetError.style.display="block";
+    playerBetInput.focus();
+    return;
+  }
+  humanPendingGuesses.set(idx,value);
+  const seat=seats[idx];
+  seat.classList.add("bet-confirmed");
+  seat.classList.remove("tie-reenter");
+  const status=seat.querySelector(".bet-status");
+  if(status) status.textContent=`€${value} ✓`;
+  const action=seat.querySelector(".bet-action");
+  if(action) action.textContent="Change Bet";
+  if(inTie){
+    humanTiePlayers.delete(idx);
+  }
+  closePlayerBetDialog();
+  updateHumanSubmitState();
+  const active=activeHumanPlayers();
+  if(active.every(i=>humanPendingGuesses.has(i))){
+    showMessage("All active player bets are confirmed — press Submit Round.",1700);
+  }
+}
+
+function collectHumanGuesses(){
+  const active=activeHumanPlayers();
+  if(active.some(i=>!humanPendingGuesses.has(i))){
+    const missing=active.find(i=>!humanPendingGuesses.has(i));
+    showMessage(`Select ${state[missing].name} and confirm a bet first.`,1800);
+    seats[missing]?.focus();
+    return null;
+  }
+  return {eligible:active,guesses:active.map(i=>humanPendingGuesses.get(i))};
+}
+
+function duplicateGuessPlayers(guessMap){
+  const groups=new Map();
+  for(const [idx,value] of guessMap.entries()){
+    if(!groups.has(value)) groups.set(value,[]);
+    groups.get(value).push(idx);
+  }
+  const tied=new Set();
+  for(const indexes of groups.values()) if(indexes.length>1) indexes.forEach(i=>tied.add(i));
+  return tied;
+}
+
+function showTieWarning(){
+  if(!tieWarningOverlay)return;
+  tieWarningOverlay.classList.add("show");
+  tieWarningOverlay.setAttribute("aria-hidden","false");
+}
+function hideTieWarning(){
+  if(!tieWarningOverlay)return;
+  tieWarningOverlay.classList.remove("show");
+  tieWarningOverlay.setAttribute("aria-hidden","true");
+}
+tieWarningClose?.addEventListener("click",hideTieWarning);
+tieWarningOverlay?.addEventListener("click",e=>{ if(e.target===tieWarningOverlay) hideTieWarning(); });
+
+function centerPoint(){
+  const wrapRect=tableWrap.getBoundingClientRect();
+  return { x:wrapRect.width/2, y:wrapRect.height/2 };
+}
+
+function seatPoint(i){
+  const wrapRect=tableWrap.getBoundingClientRect();
+  const rect=seats[i].getBoundingClientRect();
+  return {
+    x:rect.left-wrapRect.left+rect.width/2,
+    y:rect.top-wrapRect.top+rect.height/2
+  };
+}
+
+async function animateBet(i, amount, token){
+  if(token!==stopToken)return;
+  const start=seatPoint(i);
+  const end=centerPoint();
+  const chip=document.createElement("div");
+  chip.className="bet-chip";
+  chip.textContent=amount;
+  chip.style.left=(start.x-14)+"px";
+  chip.style.top=(start.y-14)+"px";
+  tableWrap.appendChild(chip);
+  await sleep(40);
+  if(token!==stopToken){chip.remove();return;}
+  chip.style.transform=`translate(${end.x-start.x}px, ${end.y-start.y}px) scale(.78)`;
+  await sleep(760);
+  chip.style.opacity="0";
+  await sleep(220);
+  chip.remove();
+}
+
+async function seatPlayers(token){
+  showMessage("Players are joining the table…",1200);
+  for(let i=0;i<seats.length;i++){
+    if(token!==stopToken)return;
+    seats[i].classList.add("active");
+    state[i].active=true;
+    await sleep(260);
+  }
+  await sleep(500);
+}
+
+function uniqueWinner(eligible, guesses){
+  const c={}; guesses.forEach(g=>c[g]=(c[g]||0)+1);
+  const uniques=guesses.filter(g=>c[g]===1).sort((a,b)=>a-b);
+  if(!uniques.length)return null; const w=uniques[0]; return {winner:eligible[guesses.indexOf(w)],winningGuess:w};
+}
+function generateGuesses(eligible){
+  let g,r; do{g=eligible.map(()=>Math.floor(Math.random()*(DEMO_MAX_GUESS-DEMO_MIN_GUESS+1))+DEMO_MIN_GUESS);r=uniqueWinner(eligible,g);}while(!r); return g;
+}
+function generateRoundGuesses(eligible){
+  /* Strategy scales with the selected range, while guaranteeing at least
+     one unique value so the automated demo cannot stall on a duplicate set. */
+  const totalPlayers=state.length;
+  const remaining=eligible.length;
+  const span=Math.max(1,DEMO_MAX_GUESS-DEMO_MIN_GUESS);
+  const progress=(totalPlayers-remaining)/Math.max(1,totalPlayers-1);
+  const centre=DEMO_MIN_GUESS + span*(0.38 + progress*0.27);
+  const personalityFractions=[-0.14,-0.11,-0.08,-0.05,-0.02,0.015,0.045,0.075,0.105,0.135];
+
+  let guesses=eligible.map((playerIndex)=>{
+    const personality=span*personalityFractions[playerIndex%personalityFractions.length];
+    const noise=(Math.random()-0.5)*span*0.22;
+    return Math.max(DEMO_MIN_GUESS,Math.min(DEMO_MAX_GUESS,Math.round(centre+personality+noise)));
+  });
+
+  if(eligible.length>=2 && Math.random()<0.72){
+    const lowest=Math.min(...guesses);
+    const challengerPos=Math.floor(Math.random()*guesses.length);
+    const undercut=Math.max(1,Math.round(span*(0.015+Math.random()*0.07)));
+    guesses[challengerPos]=Math.max(DEMO_MIN_GUESS,lowest-undercut);
+  }
+
+  // Resolve collisions where the configured range is wide enough.
+  const available=[];
+  for(let v=DEMO_MIN_GUESS;v<=DEMO_MAX_GUESS;v++) available.push(v);
+  const used=new Set();
+  guesses=guesses.map((guess)=>{
+    if(!used.has(guess)){ used.add(guess); return guess; }
+    let best=null, bestDistance=Infinity;
+    for(const candidate of available){
+      if(used.has(candidate)) continue;
+      const distance=Math.abs(candidate-guess);
+      if(distance<bestDistance){ best=candidate; bestDistance=distance; }
+    }
+    const resolved=best===null ? guess : best;
+    used.add(resolved);
+    return resolved;
+  });
+
+  // Extremely narrow ranges can contain fewer values than players. Ensure the
+  // round still has a lowest unique guess instead of looping forever.
+  if(!uniqueWinner(eligible,guesses) && guesses.length){
+    guesses[0]=DEMO_MIN_GUESS;
+    for(let i=1;i<guesses.length;i++) guesses[i]=Math.min(DEMO_MAX_GUESS,DEMO_MIN_GUESS+1);
+  }
+  return guesses;
+}
+
+async function playRound(round, token, suppliedGuesses=null){
+  if(token!==stopToken)return false;
+  seats.forEach(s=>s.classList.remove("winner"));
+
+  const monthInfo=monthInfoForRound(round);
+  roundDisplay.textContent=`${monthInfo.long} · Round ${round}`;
+
+  const eligible=state.map((p,i)=>p.wins===0?i:null).filter(i=>i!==null);
+  const guesses=Array.isArray(suppliedGuesses) ? suppliedGuesses : generateRoundGuesses(eligible);
+  const result=uniqueWinner(eligible,guesses);
+  if(!result){
+    showMessage("No unique guess this round — change the tied guesses and submit again.",2400);
+    return false;
+  }
+  const winner=result.winner, winningGuess=result.winningGuess;
+
+  // Keep every player's data aligned to the actual month/round.
+  state.forEach(p => p.guesses[round-1] = null);
+  eligible.forEach((idx,j)=>state[idx].guesses[round-1]=guesses[j]);
+
+  showMessage(`${monthInfo.long} · Round ${round} — winning guess €${winningGuess}`,1200);
+
+  // Everyone pays the winning amount. Apply accounting first, then animate.
+  const pot=winningGuess*state.length;
+  state.forEach((p,i)=>{
+    p.balance-=winningGuess;
+    p.totalLosses+=winningGuess;
+    updateSeat(i);
+  });
+  await Promise.all(state.map((_,i)=>animateBet(i,winningGuess,token)));
+  if(token!==stopToken)return false;
+  setPot(pot);
+
+  await sleep(500);
+
+  // Winner receives the full pot.
+  state[winner].balance+=pot;
+  state[winner].totalWinnings+=pot;
+  state[winner].wins=1;
+  seats[winner].classList.add("winner");
+  state.forEach((_,i)=>updateSeat(i));
+
+  outcomes.push({
+    month:monthInfo.long,
+    monthShort:monthInfo.short,
+    round,
+    winner:state[winner].name,
+    winnerIndex:winner,
+    winningGuess,
+    pot
+  });
+
+  renderOutcomes();
+  renderTotals();
+  drawOutcomeChart();
+
+  progressDisplay.textContent=state.filter(p=>p.wins>0).length+` / ${players.length} winners`;
+  showMessage(`${state[winner].name} receives €${pot}`,1500);
+
+  await sleep(1050);
+  setPot(0);
+  await sleep(350);
+  return true;
+}
+function renderOutcomes(){
+  if(!outcomeRows)return;
+  if(!outcomes.length){
+    outcomeRows.innerHTML='<tr><td colspan="4" class="empty-outcome">Start the demo to populate results.</td></tr>';
+    return;
+  }
+  outcomeRows.innerHTML=outcomes.map(o=>`
+    <tr>
+      <td>${o.month} · Round ${o.round}</td>
+      <td class="winner-name">${o.winner}</td>
+      <td>€${o.winningGuess}</td>
+      <td class="money">€${o.pot}</td>
+    </tr>`).join('');
+}
+
+
+function renderTotals(){
+  if(!totalsRows)return;
+  totalsRows.innerHTML=state.map(p=>{
+    const net=p.totalWinnings-p.totalLosses;
+    const cls=net>0?"net-positive":net<0?"net-negative":"net-zero";
+    const sign=net>0?"+":"";
+    return `<tr>
+      <td class="winner-name">${p.name}</td>
+      <td>${p.wins}</td>
+      <td class="money">€${p.totalWinnings}</td>
+      <td>€${p.totalLosses}</td>
+      <td class="${cls}">${sign}€${net}</td>
+    </tr>`;
+  }).join("");
+
+  // Money only moves between players, so the combined net should remain €0.
+  const totalNet=state.reduce((sum,p)=>sum+(p.totalWinnings-p.totalLosses),0);
+  if(combinedNet){
+    combinedNet.textContent=(totalNet>0?"+":"")+"€"+totalNet;
+    combinedNet.className=totalNet>0?"net-positive":totalNet<0?"net-negative":"net-zero";
+  }
+}
+
+const skylinePalette = [
+  "#4e79a7","#f28e2b","#e15759","#76b7b2","#59a14f",
+  "#edc949","#af7aa1","#ff9da7","#9c755f","#bab0ab"
+];
+
+function drawOutcomeChart(){
+  winningHitPoints=[];
+  const canvas=outcomeCanvas;
+  if(!canvas)return;
+
+  const r=canvas.getBoundingClientRect(), d=window.devicePixelRatio||1;
+  canvas.width=Math.max(1,r.width*d);
+  canvas.height=Math.max(1,r.height*d);
+  const ctx=canvas.getContext("2d");
+  ctx.scale(d,d);
+
+  const W=r.width,H=r.height,p={l:54,r:18,t:24,b:48};
+  ctx.clearRect(0,0,W,H);
+
+  if(chartLegend){
+    chartLegend.innerHTML=players.map((pl,i)=>
+      `<span><i style="background:${skylinePalette[i%skylinePalette.length]}"></i>${pl.name}</span>`
+    ).join("");
+  }
+
+  if(!outcomes.length){
+    ctx.fillStyle="rgba(255,255,255,.42)";
+    ctx.font="13px system-ui";
+    ctx.textAlign="center";
+    ctx.fillText("Player guess lines will appear after the first selected month",W/2,H/2);
+    return;
+  }
+
+  const rounds=outcomes.length;
+  const minY=DEMO_MIN_GUESS;
+  const maxY=DEMO_MAX_GUESS;
+  const plotW=W-p.l-p.r, plotH=H-p.t-p.b;
+
+  // Horizontal grid + y labels
+  ctx.font="11px system-ui";
+  for(let k=0;k<=4;k++){
+    const y=p.t+plotH*k/4;
+    const value=Math.round(maxY-(maxY-minY)*k/4);
+    ctx.strokeStyle="rgba(255,255,255,.09)";
+    ctx.beginPath();ctx.moveTo(p.l,y);ctx.lineTo(W-p.r,y);ctx.stroke();
+    ctx.fillStyle="rgba(255,255,255,.55)";
+    ctx.textAlign="right";
+    ctx.fillText("€"+value,p.l-7,y+4);
+  }
+
+  // X labels: M1/R1 etc.
+  const xFor=i => rounds===1 ? p.l+plotW/2 : p.l+(plotW*i/(rounds-1));
+  for(let i=0;i<rounds;i++){
+    const x=xFor(i);
+    ctx.fillStyle="rgba(255,255,255,.58)";
+    ctx.textAlign="center";
+    ctx.font="10px system-ui";
+    const o=outcomes[i];
+    ctx.fillText(o?.monthShort || `M${i+1}`,x,H-27);
+    ctx.fillStyle="rgba(255,255,255,.38)";
+    ctx.fillText(`R${i+1}`,x,H-13);
+  }
+
+  const yFor=v => p.t + (maxY-v)/(maxY-minY)*plotH;
+
+  state.forEach((pl,pi)=>{
+    const color=skylinePalette[pi%skylinePalette.length];
+    ctx.strokeStyle=color;
+    ctx.fillStyle=color;
+    ctx.lineWidth=2.2;
+    ctx.lineJoin="round";
+    ctx.lineCap="round";
+
+    let started=false;
+    ctx.beginPath();
+    for(let ri=0;ri<rounds;ri++){
+      const v=pl.guesses[ri];
+      if(v==null){
+        started=false;
+        continue;
+      }
+      const x=xFor(ri), y=yFor(v);
+      if(!started){ctx.moveTo(x,y);started=true;}
+      else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+
+    // points; winner point gets a larger ring
+    for(let ri=0;ri<rounds;ri++){
+      const v=pl.guesses[ri];
+      if(v==null)continue;
+      const x=xFor(ri), y=yFor(v);
+      ctx.beginPath();ctx.arc(x,y,3.2,0,Math.PI*2);ctx.fill();
+
+      const o=outcomes[ri];
+      if(o && o.winnerIndex===pi){
+        ctx.save();
+        ctx.strokeStyle="#f6d46b";
+        ctx.lineWidth=2.5;
+        ctx.beginPath();ctx.arc(x,y,7,0,Math.PI*2);ctx.stroke();
+        ctx.restore();
+        winningHitPoints.push({
+          x,y,
+          name:pl.name,
+          month:o.month,
+          round:o.round,
+          guess:o.winningGuess,
+          pot:o.pot
+        });
+      }
+    }
+  });
+}
+
+outcomeCanvas.addEventListener("mousemove",(ev)=>{
+  if(!winningHitPoints.length || !chartTooltip)return;
+  const rect=outcomeCanvas.getBoundingClientRect();
+  const x=ev.clientX-rect.left;
+  const y=ev.clientY-rect.top;
+  let nearest=null,dist=Infinity;
+  winningHitPoints.forEach(pt=>{
+    const d=Math.hypot(x-pt.x,y-pt.y);
+    if(d<dist){dist=d;nearest=pt;}
+  });
+  if(nearest && dist<=12){
+    chartTooltip.innerHTML=`<strong>${nearest.name}</strong><br>${nearest.month} · Round ${nearest.round}<br>Winning guess: €${nearest.guess}<br>Pot: €${nearest.pot}`;
+    chartTooltip.style.left=(nearest.x)+"px";
+    chartTooltip.style.top=(nearest.y)+"px";
+    chartTooltip.classList.add("show");
+    outcomeCanvas.style.cursor="pointer";
+  }else{
+    chartTooltip.classList.remove("show");
+    outcomeCanvas.style.cursor="default";
+  }
+});
+outcomeCanvas.addEventListener("mouseleave",()=>{
+  if(chartTooltip)chartTooltip.classList.remove("show");
+  outcomeCanvas.style.cursor="default";
+});
+
+window.addEventListener('resize',drawOutcomeChart);
+
+
+function createCelebrationStars(){
+  celebrationStars.innerHTML="";
+  for(let i=0;i<42;i++){
+    const star=document.createElement("span");
+    star.className="falling-star";
+    star.style.left=(Math.random()*120)+"vw";
+    star.style.animationDuration=(1.8+Math.random()*2.8)+"s";
+    star.style.animationDelay=(Math.random()*1.2)+"s";
+    star.style.width=star.style.height=(2+Math.random()*3)+"px";
+    celebrationStars.appendChild(star);
+  }
+}
+function showCelebration(){
+  if(!celebrationOverlay || !celebrationMessage || !celebrationStars)return;
+  const total=players.length;
+  celebrationMessage.textContent=`Congratulations — ${total} players · ${total} winners!`;
+  createCelebrationStars();
+  celebrationOverlay.classList.add("show");
+  celebrationOverlay.setAttribute("aria-hidden","false");
+}
+function hideCelebration(){
+  if(!celebrationOverlay)return;
+  celebrationOverlay.classList.remove("show");
+  celebrationOverlay.setAttribute("aria-hidden","true");
+}
+celebrationCloseBtn?.addEventListener("click",hideCelebration);
+celebrationOverlay?.addEventListener("click",(e)=>{
+  if(e.target===celebrationOverlay)hideCelebration();
+});
+function createAmbientStars(){
+  document.querySelectorAll(".ambient-star").forEach(el=>el.remove());
+  for(let i=0;i<18;i++){
+    const s=document.createElement("span");
+    s.className="ambient-star";
+    s.textContent="✦";
+    s.style.left=(Math.random()*115)+"vw";
+    s.style.animationDuration=(7+Math.random()*9)+"s";
+    s.style.animationDelay=(-Math.random()*12)+"s";
+    s.style.fontSize=(6+Math.random()*8)+"px";
+    document.body.appendChild(s);
+  }
+}
+
+async function startHumanGame(){
+  if(roundInProgress || running)return;
+  if(!validateAndApplySettings())return;
+  resetState();
+  humanPlayMode=true;
+  manualMode=false;
+  setSettingsLocked(true);
+  tableWrap.classList.add("human-play");
+  playGameBtn.classList.add("active-mode");
+  startBtn.classList.remove("active-mode");
+  startBtn.disabled=true;
+  playGameBtn.disabled=true;
+  startRoundBtn.disabled=true;
+  nextRoundBtn.disabled=true;
+  const token=stopToken;
+  roundInProgress=true;
+  await seatPlayers(token);
+  roundInProgress=false;
+  if(token!==stopToken)return;
+  currentRound=1;
+  prepareHumanGuessInputs(currentRound);
+}
+
+async function submitHumanGuesses(){
+  if(!humanPlayMode || roundInProgress || running)return;
+  const entry=collectHumanGuesses();
+  if(!entry)return;
+
+  const activePlayers=state.map((p,i)=>p.wins===0?i:null).filter(i=>i!==null);
+  // Do not resolve the round until every still-active player has a stored guess.
+  if(activePlayers.some(i=>!humanPendingGuesses.has(i))) return;
+
+  const tied=duplicateGuessPlayers(humanPendingGuesses);
+  if(tied.size){
+    humanTiePlayers=tied;
+    humanTieLimits.clear();
+    tied.forEach(i=>humanTieLimits.set(i,humanPendingGuesses.get(i)));
+    tied.forEach(i=>humanPendingGuesses.delete(i));
+    showTieWarning();
+    prepareHumanGuessInputs(currentRound,true);
+    return;
+  }
+
+  const finalGuesses=activePlayers.map(i=>humanPendingGuesses.get(i));
+  humanTiePlayers.clear();
+  humanTieLimits.clear();
+
+  const token=stopToken;
+  roundInProgress=true;
+  submitGuessesBtn.disabled=true;
+  seats.forEach(s=>{const i=s.querySelector(".seat-guess");if(i)i.disabled=true;});
+  const resolved=await playRound(currentRound,token,finalGuesses);
+  roundInProgress=false;
+  if(token!==stopToken)return;
+  if(!resolved){
+    prepareHumanGuessInputs(currentRound);
+    return;
+  }
+  humanPendingGuesses.clear();
+  if(state.every(p=>p.wins>0)){
+    roundDisplay.textContent="Complete";
+    seats.forEach(s=>s.classList.remove("eligible","tie-reenter"));
+    submitGuessesBtn.style.display="none";
+    showMessage("Game complete — every selected player has won a round.",1900);
+    showCelebration();
+    playGameBtn.disabled=false;
+    startBtn.disabled=false;
+    return;
+  }
+  currentRound++;
+  prepareHumanGuessInputs(currentRound);
+}
+
+async function startDemo(){
+  if (roundInProgress || running) return;
+  if(!validateAndApplySettings())return;
+  resetState();
+  setSettingsLocked(true);
+  manualMode=false;
+  humanPlayMode=false;
+  startBtn.classList.add("active-mode");
+  playGameBtn.classList.remove("active-mode");
+  running=true;
+  const token=stopToken;
+
+  startBtn.disabled=true;
+  playGameBtn.disabled=true;
+  startRoundBtn.disabled=true;
+  nextRoundBtn.disabled=true;
+
+  await seatPlayers(token);
+  if(token!==stopToken) return;
+
+  while(state.some(p=>p.wins===0) && token===stopToken){
+    currentRound++;
+    roundInProgress=true;
+    await playRound(currentRound, token);
+    roundInProgress=false;
+    if(state.every(p=>p.wins>0)) break;
+    await sleep(850);
+  }
+
+  if(token===stopToken){
+    running=false;
+    startBtn.disabled=false;
+    playGameBtn.disabled=false;
+    startRoundBtn.disabled=false;
+    nextRoundBtn.disabled=true;
+    roundDisplay.textContent="Complete";
+    showMessage("Demo complete — every selected player has won a round.",1800);
+    showCelebration();
+  }
+}
+
+async function runManualRound(){
+  if(roundInProgress || running) return;
+
+  // First manual click starts a fresh demo and seats everyone.
+  if(!manualInitialized){
+    resetState();
+    manualMode=true;
+    manualInitialized=true;
+    const token=stopToken;
+    startBtn.disabled=true;
+    startRoundBtn.disabled=true;
+    nextRoundBtn.disabled=true;
+    roundInProgress=true;
+    await seatPlayers(token);
+    if(token!==stopToken){ roundInProgress=false; return; }
+    currentRound=1;
+    await playRound(currentRound, token);
+    roundInProgress=false;
+  } else {
+    const token=stopToken;
+    if(state.every(p=>p.wins>0)) return;
+    startBtn.disabled=true;
+    startRoundBtn.disabled=true;
+    nextRoundBtn.disabled=true;
+    roundInProgress=true;
+    currentRound++;
+    await playRound(currentRound, token);
+    roundInProgress=false;
+  }
+
+  const finished=state.every(p=>p.wins>0);
+  startBtn.disabled=false;
+  startRoundBtn.disabled=true;
+  nextRoundBtn.disabled=finished;
+
+  if(finished){
+    roundDisplay.textContent="Complete";
+    showMessage("Manual demo complete — every selected player has won a round.",1800);
+    showCelebration();
+  } else {
+    showMessage("Month complete — press Next Round when ready.",1600);
+  }
+}
+
+
+// Manual Play interaction: click a player card or tab to it and press Enter/Space.
+tableWrap.addEventListener("click", (event)=>{
+  if(!humanPlayMode)return;
+  const seat=event.target.closest(".seat");
+  if(!seat || !seat.classList.contains("eligible"))return;
+  openPlayerBetDialog(Number(seat.dataset.playerIndex));
+});
+tableWrap.addEventListener("keydown", (event)=>{
+  if(!humanPlayMode || !event.target.classList.contains("seat"))return;
+  if(event.key==="Enter" || event.key===" "){
+    event.preventDefault();
+    openPlayerBetDialog(Number(event.target.dataset.playerIndex));
+  }
+});
+playerBetConfirm?.addEventListener("click",confirmPlayerBet);
+playerBetCancel?.addEventListener("click",closePlayerBetDialog);
+playerBetOverlay?.addEventListener("click",e=>{ if(e.target===playerBetOverlay) closePlayerBetDialog(); });
+playerBetInput?.addEventListener("keydown",e=>{
+  if(e.key==="Enter"){e.preventDefault();confirmPlayerBet();}
+  if(e.key==="Escape"){e.preventDefault();closePlayerBetDialog();}
+});
+
+startBtn.addEventListener("click", startDemo);
+playGameBtn.addEventListener("click", startHumanGame);
+submitGuessesBtn.addEventListener("click", submitHumanGuesses);
+startRoundBtn.addEventListener("click", runManualRound);
+nextRoundBtn.addEventListener("click", runManualRound);
+resetBtn.addEventListener("click", () => {
+  // Incrementing the token inside resetState cancels any in-flight async round.
+  hideTieWarning();
+  resetState();
+  resetBtn.blur();
+});
+
+createSky();
+applyCalendarMinimum();
+createAmbientStars();
+resetState();
+</script>
+
+
+<script>
+(function(){
+  function moveRoundButtonsIntoTable(){
+    var tableWrap=document.querySelector('.table-wrap');
+    var startBtn=document.getElementById('btnStartRound') || document.getElementById('btnStart') || [...document.querySelectorAll('button')].find(b=>/start round/i.test(b.textContent||''));
+    var nextBtn=document.getElementById('btnNextRound') || [...document.querySelectorAll('button')].find(b=>/next round/i.test(b.textContent||''));
+    if(!tableWrap || !startBtn || !nextBtn) return;
+    var holder=tableWrap.querySelector('.table-round-controls');
+    if(!holder){
+      holder=document.createElement('div');
+      holder.className='table-round-controls';
+      holder.setAttribute('aria-label','Round controls');
+      tableWrap.appendChild(holder);
+    }
+    holder.appendChild(startBtn);
+    holder.appendChild(nextBtn);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', moveRoundButtonsIntoTable);
+  else moveRoundButtonsIntoTable();
+})();
+</script>
+
+<style id="v17-separate-play-button">
+/* v17: Automated Demo stays in the banner; Play the Game lives in the settings card. */
+.mode-toggle-row{grid-template-columns:1fr !important;}
+#startBtn{width:100% !important;}
+.game-settings{position:relative;}
+.settings-play-action{
+  grid-column:1 / -1;
+  display:flex;
+  width:100%;
+  margin:0 0 4px;
+}
+.settings-play-action #playGameBtn{
+  width:100% !important;
+  min-height:42px;
+  margin:0 !important;
+}
+@media (min-width:1121px){
+  .hero-pane .controls{
+    grid-template-columns:1fr !important;
+    grid-template-areas:"reset" "modes" !important;
+  }
+  .hero-pane .mode-toggle-row{grid-template-columns:1fr !important;}
+}
+</style>
+
+<style id="v18-filled-logo-falling-star">
+/* v18: vertically filled neon logo, distant skyline and a genuinely falling banner star. */
+.header-banner .retro-skyline-word{
+  display:block !important;
+  width:min(72%,345px) !important;
+  height:58px !important;
+  transform:none !important;
+  color:inherit !important;
+  background:none !important;
+  overflow:visible !important;
+}
+.header-banner .retro-skyline-svg{
+  display:block;
+  width:100%;
+  height:100%;
+  overflow:visible;
+  shape-rendering:geometricPrecision;
+  filter:drop-shadow(0 2px 0 #020516) drop-shadow(0 0 5px rgba(79,70,255,.42));
+}
+.header-banner .retro-skyline-svg text{
+  font-family:"Arial Black","Eurostile Extended","Microgramma D Extended",Impact,sans-serif;
+  font-size:50px;
+  font-weight:900;
+  font-style:italic;
+  letter-spacing:.6px;
+}
+.header-banner .skyline-logo-outline{
+  fill:none;
+  stroke:#160843;
+  stroke-width:5.2px;
+  stroke-linejoin:round;
+  paint-order:stroke;
+}
+.header-banner .skyline-logo-fill{
+  fill:url(#skylineLetterFill);
+  stroke:#78eaff;
+  stroke-width:1.2px;
+  stroke-linejoin:round;
+  paint-order:stroke fill;
+}
+@media (max-width:1120px){
+  .header-banner .retro-skyline-word{
+    width:min(76%,310px) !important;
+    height:50px !important;
+  }
+}
+
+/* A smaller, softer silhouette reads as a city much farther away. */
+.header-banner .city-silhouette{
+  left:0 !important;
+  right:0 !important;
+  bottom:0 !important;
+  height:58.8px !important;
+  display:flex !important;
+  align-items:flex-end !important;
+  justify-content:center !important;
+  gap:5px !important;
+  padding:0 12px !important;
+  opacity:.66 !important;
+  filter:saturate(.72) blur(.15px);
+  border-bottom:1px solid rgba(91,66,190,.24) !important;
+}
+.header-banner .city-silhouette i{
+  flex:0 0 clamp(14px,4.34%,25.2px) !important;
+  width:clamp(14px,4.34%,25.2px) !important;
+  margin:0 !important;
+  background:linear-gradient(90deg,#02040c,#080b1b 58%,#02040c) !important;
+  border-top:0 !important;
+  border-radius:1px 1px 0 0;
+  box-shadow:inset 2.8px 0 0 rgba(76,48,138,.10) !important;
+}
+.header-banner .city-silhouette i::after{
+  left:4.2px !important;
+  top:8.4px !important;
+  width:2.8px !important;
+  height:2.8px !important;
+  background:#906cff !important;
+  box-shadow:8.4px 0 0 #45a8ff,0 9.8px 0 #cf59ff,8.4px 16.8px 0 #6c75ff,0 25.2px 0 #4e9cff !important;
+  opacity:.52 !important;
+}
+
+/* Four repeating rooftop families: gable, dome, utility box and antenna. */
+.header-banner .city-silhouette i::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:-9.8px;
+  width:1.4px;
+  height:9.8px;
+  transform:translateX(-50%);
+  background:#080b1b;
+  box-shadow:0 -2px 3px rgba(95,91,210,.22);
+}
+.header-banner .city-silhouette i:nth-child(4n+1)::before{
+  top:-7px;
+  width:0;
+  height:0;
+  background:transparent;
+  border-left:8.4px solid transparent;
+  border-right:8.4px solid transparent;
+  border-bottom:7px solid #050817;
+  box-shadow:none;
+}
+.header-banner .city-silhouette i:nth-child(4n+2)::before{
+  left:2.8px;
+  right:2.8px;
+  top:-5.6px;
+  width:auto;
+  height:7px;
+  transform:none;
+  border-radius:50% 50% 0 0;
+  background:#050817;
+  box-shadow:none;
+}
+.header-banner .city-silhouette i:nth-child(4n+3)::before{
+  top:-5.6px;
+  width:58%;
+  height:5.6px;
+  border-radius:1px 1px 0 0;
+  background:#060919;
+  box-shadow:5.6px 1px 0 -1px #060919;
+}
+.header-banner .city-silhouette i:nth-child(1){height:19.6px !important;}
+.header-banner .city-silhouette i:nth-child(2){height:30.8px !important;}
+.header-banner .city-silhouette i:nth-child(3){height:23.8px !important;}
+.header-banner .city-silhouette i:nth-child(4){height:37.8px !important;}
+.header-banner .city-silhouette i:nth-child(5){height:26.6px !important;}
+.header-banner .city-silhouette i:nth-child(6){height:42px !important;}
+.header-banner .city-silhouette i:nth-child(7){height:22.4px !important;}
+.header-banner .city-silhouette i:nth-child(8){height:35px !important;}
+.header-banner .city-silhouette i:nth-child(9){height:28px !important;}
+.header-banner .city-silhouette i:nth-child(10){height:40.6px !important;}
+.header-banner .city-silhouette i:nth-child(11){height:21px !important;}
+.header-banner .city-silhouette i:nth-child(12){height:44.8px !important;}
+.header-banner .city-silhouette i:nth-child(13){height:29.4px !important;}
+.header-banner .city-silhouette i:nth-child(14){height:36.4px !important;}
+.header-banner .city-silhouette i:nth-child(15){height:23.8px !important;}
+.header-banner .city-silhouette i:nth-child(16){height:39.2px !important;}
+@media (min-width:1121px){
+  .header-banner .city-silhouette{
+    bottom:62px !important;
+    height:61.6px !important;
+  }
+}
+
+.header-banner .shooting-star{
+  transform:translate3d(-24px,-20px,0) rotate(31deg);
+  transform-origin:right center !important;
+  animation:bannerStarFall 5.4s linear infinite !important;
+  will-change:transform,opacity;
+}
+.header-banner .shooting-star::after{
+  animation:bannerStarGlow .75s ease-in-out infinite alternate;
+}
+@keyframes bannerStarFall{
+  0%{transform:translate3d(-24px,-20px,0) rotate(31deg);opacity:0;}
+  8%{opacity:1;}
+  78%{opacity:1;}
+  92%,100%{transform:translate3d(104px,92px,0) rotate(31deg);opacity:0;}
+}
+@keyframes bannerStarGlow{
+  from{filter:brightness(.9);}
+  to{filter:brightness(1.45);}
+}
+@media (prefers-reduced-motion:reduce){
+  .header-banner .shooting-star{
+    animation:none !important;
+    transform:translate3d(36px,34px,0) rotate(31deg) !important;
+    opacity:.9;
+  }
+  .header-banner .shooting-star::after{animation:none !important;}
+}
+</style>
+<script>
+(function(){
+  function movePlayButtonToSettings(){
+    var settings=document.querySelector('.game-settings');
+    var play=document.getElementById('playGameBtn');
+    if(!settings || !play) return;
+    var holder=settings.querySelector('.settings-play-action');
+    if(!holder){
+      holder=document.createElement('div');
+      holder.className='settings-play-action';
+      holder.setAttribute('aria-label','Manual game mode');
+      settings.insertBefore(holder, settings.firstChild);
+    }
+    holder.appendChild(play);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', movePlayButtonToSettings);
+  else movePlayButtonToSettings();
+})();
+</script>
+
+</body>
+</html>
