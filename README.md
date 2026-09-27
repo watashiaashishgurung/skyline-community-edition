@@ -11,3 +11,11 @@ Community leaders, sponsors, businesses, or other supporters could also particip
 In this way, Skyline explores a simple idea:
 
 **What if a game could bring people with different financial means together and create a community-driven way of allocating resources where they can make the greatest difference?**
+
+## Skyline and Skyline community edition
+ 
+🌠 **Skyline Community Edition**  
+[Skyline Community Edition](https://watashiaashishgurung.github.io/skyline-community-edition/)
+
+🏙️ **Skyline Original**  
+[ Skyline ](https://watashiaashishgurung.github.io/skyline-app/)
