@@ -2539,6 +2539,25 @@ body{
   }
 }
 </style>
+<style id="settings-buttons-contained-fix">
+/* Keep every game-settings control in its own grid cell at all viewport sizes. */
+.game-settings{box-sizing:border-box!important;min-width:0!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;grid-template-areas:"players names manual" "min max month" "note note note" "error error error"!important;}
+.game-settings > label{min-width:0!important;max-width:100%!important;box-sizing:border-box!important;}
+.game-settings > label:nth-of-type(1){grid-area:players!important}
+.game-settings > label:nth-of-type(2){grid-area:names!important}
+.game-settings > label:nth-of-type(3){grid-area:manual!important}
+.game-settings > label:nth-of-type(4){grid-area:min!important}
+.game-settings > label:nth-of-type(5){grid-area:max!important}
+.game-settings > label:nth-of-type(6){grid-area:month!important}
+.game-settings button,.game-settings input{box-sizing:border-box!important;max-width:100%!important;min-width:0!important;}
+.game-settings .random-names-btn{display:block!important;width:100%!important;white-space:normal!important;height:auto!important;min-height:38px!important;padding:7px 8px!important;line-height:1.25!important;overflow-wrap:anywhere!important;}
+.game-settings .player-count-control{max-width:100%!important;min-width:0!important;}
+.game-settings .player-count-control input{min-width:0!important;width:100%!important;}
+.game-settings .settings-note{grid-area:note!important;min-width:0!important}
+.game-settings .settings-error{grid-area:error!important;min-width:0!important}
+@media(max-width:800px){.game-settings{grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-template-areas:"players names" "manual manual" "min max" "month month" "note note" "error error"!important;}}
+@media(max-width:420px){.game-settings{grid-template-columns:minmax(0,1fr)!important;grid-template-areas:"players" "names" "manual" "min" "max" "month" "note" "error"!important;}}
+</style>
 </head>
 <body>
 <div class="sky" id="sky"></div>
@@ -2623,6 +2642,9 @@ body{
       <label>Demo names
         <button id="randomNamesBtn" type="button" class="secondary random-names-btn">🎲 Randomize Names</button>
       </label>
+      <label>Player names
+        <button id="editPlayerNamesBtn" type="button" class="secondary random-names-btn">✏️ Enter Names Manually</button>
+      </label>
       <label>Minimum guess (€)
         <input id="minGuessInput" type="number" min="1" step="1" value="800">
       </label>
@@ -2636,6 +2658,18 @@ body{
       <div class="settings-error" id="settingsError">Maximum guess must be greater than minimum guess.</div>
     </div>
   </header>
+  <div id="manualNamesOverlay" class="manual-names-overlay" role="dialog" aria-modal="true" aria-labelledby="manualNamesTitle" hidden>
+    <div class="manual-names-panel">
+      <h2 id="manualNamesTitle">✏️ Enter Player Names</h2>
+      <p>Enter one name per line (2–22 players). The number of players will update automatically.</p>
+      <textarea id="manualNamesInput" rows="12" spellcheck="false" aria-label="Player names, one per line"></textarea>
+      <p id="manualNamesError" class="manual-names-error" role="alert"></p>
+      <div class="manual-names-actions">
+        <button id="cancelManualNamesBtn" type="button" class="secondary">Cancel</button>
+        <button id="saveManualNamesBtn" type="button" class="primary">Save Names</button>
+      </div>
+    </div>
+  </div>
 
   <section class="hud">
     <div class="hud-card">
@@ -2827,6 +2861,42 @@ const playerCountInput=document.getElementById("playerCountInput");
 const playerMinusBtn=document.getElementById("playerMinusBtn");
 const playerPlusBtn=document.getElementById("playerPlusBtn");
 const randomNamesBtn=document.getElementById("randomNamesBtn");
+const editPlayerNamesBtn=document.getElementById("editPlayerNamesBtn");
+const manualNamesOverlay=document.getElementById("manualNamesOverlay");
+const manualNamesInput=document.getElementById("manualNamesInput");
+const manualNamesError=document.getElementById("manualNamesError");
+const saveManualNamesBtn=document.getElementById("saveManualNamesBtn");
+const cancelManualNamesBtn=document.getElementById("cancelManualNamesBtn");
+let customNamesActive=false;
+function openManualNames(){
+  if(running || roundInProgress)return;
+  manualNamesInput.value=players.map(p=>p.name).join("\n");
+  manualNamesError.textContent="";
+  manualNamesOverlay.hidden=false;
+  manualNamesInput.focus();
+}
+function closeManualNames(){manualNamesOverlay.hidden=true;}
+editPlayerNamesBtn.addEventListener("click",openManualNames);
+cancelManualNamesBtn.addEventListener("click",closeManualNames);
+manualNamesOverlay.addEventListener("click",e=>{if(e.target===manualNamesOverlay)closeManualNames();});
+manualNamesOverlay.addEventListener("keydown",e=>{if(e.key==="Escape")closeManualNames();});
+saveManualNamesBtn.addEventListener("click",()=>{
+  if(running || roundInProgress)return;
+  const names=manualNamesInput.value.split(/\r?\n/).map(n=>n.trim()).filter(Boolean);
+  if(names.length<2 || names.length>22){manualNamesError.textContent="Please enter between 2 and 22 names.";return;}
+  if(names.some(n=>n.length>40)){manualNamesError.textContent="Each name must be 40 characters or fewer.";return;}
+  if(new Set(names.map(n=>n.toLocaleLowerCase())).size!==names.length){manualNamesError.textContent="Please use unique player names.";return;}
+  currentPlayerPool=names.map((name,i)=>({name,icon:playerPool[i%playerPool.length].icon}));
+  customNamesActive=true;
+  selectedPlayerCount=names.length;
+  playerCountInput.value=selectedPlayerCount;
+  players=currentPlayerPool.slice(0,selectedPlayerCount);
+  positions=makePositions(selectedPlayerCount);
+  closeManualNames();
+  resetState();
+  showMessage("Manual player names saved.");
+});
+
 const celebrationOverlay=document.getElementById("celebrationOverlay");
 const celebrationMessage=document.getElementById("celebrationMessage");
 const celebrationStars=document.getElementById("celebrationStars");
@@ -2941,7 +3011,7 @@ function validateAndApplySettings(){
   DEMO_MIN_GUESS=minVal;
   DEMO_MAX_GUESS=maxVal;
   selectedStartMonth=monthVal;
-  selectedPlayerCount=Math.max(2,Math.min(playerPool.length,Number(playerCountInput.value)||10));
+  selectedPlayerCount=Math.max(2,Math.min(currentPlayerPool.length,Number(playerCountInput.value)||10));
   players=currentPlayerPool.slice(0,selectedPlayerCount);
   positions=makePositions(selectedPlayerCount);
   minGuessStat.textContent="€"+DEMO_MIN_GUESS;
@@ -2953,8 +3023,9 @@ function setSettingsLocked(locked){
   maxGuessInput.disabled=locked;
   startMonthInput.disabled=locked;
   playerMinusBtn.disabled=locked || selectedPlayerCount<=2;
-  playerPlusBtn.disabled=locked || selectedPlayerCount>=playerPool.length;
+  playerPlusBtn.disabled=locked || selectedPlayerCount>= (customNamesActive?currentPlayerPool.length:playerPool.length);
   randomNamesBtn.disabled=locked;
+  editPlayerNamesBtn.disabled=locked;
 }
 minGuessInput.addEventListener("input",()=>{
   if(!running && !roundInProgress) validateAndApplySettings();
@@ -2979,6 +3050,7 @@ function shuffleArray(arr){
 function randomizeNames(){
   if(running || roundInProgress)return;
   currentPlayerPool=shuffleArray(playerPool);
+  customNamesActive=false;
   players=currentPlayerPool.slice(0,selectedPlayerCount);
   resetState();
   showMessage("Demo player names randomized.");
@@ -2987,12 +3059,15 @@ randomNamesBtn.addEventListener("click",randomizeNames);
 
 function changePlayerCount(delta){
   if(running || roundInProgress)return;
-  selectedPlayerCount=Math.max(2,Math.min(playerPool.length,selectedPlayerCount+delta));
+  if(customNamesActive){
+    currentPlayerPool=[...currentPlayerPool,...playerPool.filter(p=>!currentPlayerPool.some(c=>c.name===p.name))];
+  }
+  selectedPlayerCount=Math.max(2,Math.min(currentPlayerPool.length,selectedPlayerCount+delta));
   playerCountInput.value=selectedPlayerCount;
   players=currentPlayerPool.slice(0,selectedPlayerCount);
   positions=makePositions(selectedPlayerCount);
   playerMinusBtn.disabled=selectedPlayerCount<=2;
-  playerPlusBtn.disabled=selectedPlayerCount>=playerPool.length;
+  playerPlusBtn.disabled=selectedPlayerCount>=currentPlayerPool.length;
   resetState();
 }
 playerMinusBtn.addEventListener("click",()=>changePlayerCount(-1));
@@ -4033,6 +4108,13 @@ resetState();
   }
   .header-banner .shooting-star::after{animation:none !important;}
 }
+
+.manual-names-overlay[hidden]{display:none!important}
+.manual-names-overlay{position:fixed;inset:0;z-index:100000;background:rgba(3,8,24,.82);display:flex;align-items:center;justify-content:center;padding:16px}
+.manual-names-panel{width:min(100%,480px);max-height:90vh;overflow:auto;background:#101a35;border:1px solid #6b84b4;border-radius:18px;padding:22px;color:#f5f7ff;box-shadow:0 20px 70px #0009}
+.manual-names-panel h2{margin:0 0 10px;font-size:1.3rem}.manual-names-panel p{font-size:.85rem;line-height:1.5}
+#manualNamesInput{display:block;box-sizing:border-box;width:100%;min-height:180px;resize:vertical;background:#081228;color:#fff;border:1px solid #7289b4;border-radius:10px;padding:12px;font:inherit;line-height:1.6}
+.manual-names-error{color:#ff9ca4;min-height:1em}.manual-names-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
 </style>
 <script>
 (function(){
