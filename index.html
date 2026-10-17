@@ -1435,6 +1435,24 @@ body{
     height:42px !important;
   }
 }
+
+/* Ko-fi support link: button-sized and responsive inside the banner controls. */
+.topbar .controls .skyline-donate-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  box-sizing: border-box; max-width: 100%; min-width: 0;
+  padding: 10px 15px; border: 1px solid #f2a4c7; border-radius: 10px;
+  background: linear-gradient(135deg, #f35c91, #a744b8);
+  color: #fff; font: inherit; font-weight: 700; text-decoration: none;
+  text-align: center; line-height: 1.25; white-space: normal;
+  transition: filter .18s ease, transform .18s ease;
+}
+.topbar .controls .skyline-donate-btn:hover,
+.topbar .controls .skyline-donate-btn:focus-visible {
+  filter: brightness(1.14); transform: translateY(-1px);
+}
+@media (max-width: 560px) {
+  .topbar .controls .skyline-donate-btn { width: 100%; }
+}
 </style>
 
 <style id="v6-retro-reference-layout">
@@ -2623,6 +2641,7 @@ body{
     </div>
     <div class="controls">
       <button id="resetBtn" type="button">Reset</button>
+      <a class="skyline-donate-btn" href="https://ko-fi.com/skylineapp" target="_blank" rel="noopener noreferrer" aria-label="Support Skyline on Ko-fi (opens in a new tab)">☕ Donate on Ko-fi ↗</a>
       <div class="mode-toggle-row" aria-label="Game mode">
         <button id="startBtn" class="primary" type="button">▶ Start Automated Demo</button>
         <button id="playGameBtn" class="secondary" type="button">🎮 Play the Game</button>
